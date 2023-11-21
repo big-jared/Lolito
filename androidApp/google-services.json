@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "220603047436",
+    "project_id": "lolito-48c4c",
+    "storage_bucket": "lolito-48c4c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:220603047436:android:87616a2a5f733673e41829",
+        "android_client_info": {
+          "package_name": "com.myapplication.MyApplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDa8VDpvTcvS374k4r5u-3zFCuTwAm-s6A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
