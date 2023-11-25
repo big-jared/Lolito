@@ -32,7 +32,6 @@ kotlin {
                 implementation("com.materialkolor:material-kolor:1.2.6")
                 implementation("com.google.accompanist:accompanist-flowlayout:0.19.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
-                implementation("com.airbnb.android:lottie-compose:6.2.0")
 
                 val firebaseVersion = "1.10.0"
 

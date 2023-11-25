@@ -1,6 +1,9 @@
 package screens.home
 
+import LocalNavigator
+import Screen
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -24,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,13 +36,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.app
-import dev.gitlive.firebase.firestore.firestore
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -49,13 +48,14 @@ import models.currentUser
 import screens.create.AddTasksScreen
 import services.TaskService
 
-class HomeScreen : Screen {
+class HomeScreen : Screen() {
 
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
-    override fun Content() {
+    override fun BoxScope.Content() {
         val tasksByType = allTasks.value.filter { it.assignee == currentUser }.groupBy { it.type }
-        val navigator = LocalNavigator.currentOrThrow
+        val navigator = LocalNavigator.current
+        val coScope = rememberCoroutineScope()
 
         Scaffold {
             Column(Modifier.fillMaxSize().padding(all = 8.dp)) {
@@ -72,7 +72,9 @@ class HomeScreen : Screen {
                     }
                 }
                 Button(modifier = Modifier.fillMaxWidth(), onClick = {
-                    navigator.push(AddTasksScreen())
+                    coScope.launch {
+                        navigator.changeScreen(AddTasksScreen())
+                    }
                 }) {
                     Text("Add Tasks")
                 }
