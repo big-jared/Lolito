@@ -1,9 +1,6 @@
 package screens.home
 
-import LocalNavigator
-import Screen
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -36,7 +33,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
@@ -48,13 +48,13 @@ import models.currentUser
 import screens.create.AddTasksScreen
 import services.TaskService
 
-class HomeScreen : Screen() {
+class HomeScreen : Screen {
 
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
-    override fun BoxScope.Content() {
+    override fun Content() {
         val tasksByType = allTasks.value.filter { it.assignee == currentUser }.groupBy { it.type }
-        val navigator = LocalNavigator.current
+        val navigator = LocalNavigator.currentOrThrow
         val coScope = rememberCoroutineScope()
 
         Scaffold {
@@ -73,7 +73,7 @@ class HomeScreen : Screen() {
                 }
                 Button(modifier = Modifier.fillMaxWidth(), onClick = {
                     coScope.launch {
-                        navigator.changeScreen(AddTasksScreen())
+                        navigator.push(AddTasksScreen())
                     }
                 }) {
                     Text("Add Tasks")
@@ -142,7 +142,7 @@ class HomeScreen : Screen() {
                         FilledTonalButton(
                             modifier = Modifier.scale(.7f).align(Alignment.Top),
                             onClick = {
-                                TaskService.completeTask(task)
+//                                TaskService.completeTask(task)
                             },
                             colors = ButtonDefaults.filledTonalButtonColors(
                                 containerColor = if (task.complete) {

@@ -1,6 +1,5 @@
 package screens.home
 
-import LocalNavigator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -21,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.launch
@@ -47,7 +48,7 @@ class SettingsSheet : BottomSheetScreen {
 
     @Composable
     override fun ColumnScope.BottomSheetContent() {
-        val navigator = LocalNavigator.current
+        val navigator = LocalNavigator.currentOrThrow
         val coScope = rememberCoroutineScope()
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text("Show tasks for User")
@@ -69,10 +70,8 @@ class SettingsSheet : BottomSheetScreen {
                     coScope.launch {
                         try {
                             Firebase.auth.signOut()
-                            navigator.changeScreen(SplashScreen(), false)
-                        } catch (e: Exception) {
-
-                        }
+                            navigator.replaceAll(SplashScreen())
+                        } catch (e: Exception) { }
                     }
                 },
                 content = {

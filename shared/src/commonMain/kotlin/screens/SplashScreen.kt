@@ -1,22 +1,30 @@
 package screens
 
-import LocalNavigator
-import Screen
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
+import screens.create.GroupScreen
 import screens.home.HomeScreen
 import screens.preAuth.Landing
+import services.GroupService
 
-class SplashScreen : Screen() {
+val uid: String? get() = Firebase.auth.currentUser?.uid
+
+class SplashScreen : Screen {
     @Composable
-    override fun BoxScope.Content() {
-        val navigator = LocalNavigator.current
+    override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
 
         LaunchedEffect(null) {
-            navigator.changeScreen(if (Firebase.auth.currentUser == null) Landing() else HomeScreen(), false)
+            navigator.push(when {
+                uid == null -> Landing()
+                GroupService.getGroups(uid!!).isEmpty() -> GroupScreen()
+                else -> HomeScreen()
+            })
         }
     }
 }

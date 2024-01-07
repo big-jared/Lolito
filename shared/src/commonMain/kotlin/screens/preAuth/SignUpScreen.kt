@@ -1,9 +1,8 @@
 package screens.preAuth
 
-import LocalNavigator
-import Screen
-import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,71 +21,79 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.launch
 import screens.home.HomeScreen
 
-class SignUpScreen: Screen() {
+class SignUpScreen: Screen {
 
     @Composable
-    override fun BoxScope.Content() {
-        val navigator = LocalNavigator.current
+    override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
         var dialogText by remember { mutableStateOf("") }
         var username by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         val coScope = rememberCoroutineScope()
 
-        Column(
-            modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = 24.dp)
-        ) {
-            Text(
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 8.dp),
-                text = "Username/Email"
-            )
-            OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally),
-                value = username,
-                onValueChange = {
-                    username = it
-                })
-            Text(
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 8.dp),
-                text = "Password"
-            )
-            OutlinedTextField(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                value = password,
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
-                onValueChange = {
-                    password = it
-                },
-            )
-            Button(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 24.dp),
-                onClick = {
-                    coScope.launch {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp)
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                        .padding(vertical = 8.dp),
+                    text = "Username/Email"
+                )
+                OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally),
+                    value = username,
+                    onValueChange = {
+                        username = it
+                    })
+                Text(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                        .padding(vertical = 8.dp),
+                    text = "Password"
+                )
+                OutlinedTextField(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    value = password,
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
+                    onValueChange = {
+                        password = it
+                    },
+                )
+                Button(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 24.dp),
+                    onClick = {
                         coScope.launch {
-                            try {
-                                Firebase.auth.createUserWithEmailAndPassword(
-                                    username, password
-                                ).user?.let {
-                                    navigator.changeScreen(HomeScreen(), true)
-                                } ?: run {
-                                    dialogText = "Unexpected error occured"
+                            coScope.launch {
+                                try {
+                                    Firebase.auth.createUserWithEmailAndPassword(
+                                        username, password
+                                    ).user?.let {
+                                        navigator.replaceAll(HomeScreen())
+                                    } ?: run {
+                                        dialogText = "Unexpected error occured"
+                                    }
+                                } catch (e: Exception) {
+                                    dialogText = e.message ?: ""
                                 }
-                            } catch (e: Exception) {
-                                dialogText = e.message ?: ""
                             }
                         }
+                    }) {
+                    Text("Sign Up")
+                }
+                TextButton(modifier = Modifier.align(Alignment.CenterHorizontally), onClick = {
+                    coScope.launch {
+                        navigator.pop()
                     }
                 }) {
-                Text("Sign Up")
-            }
-            TextButton(modifier = Modifier.align(Alignment.CenterHorizontally), onClick = {
-                coScope.launch {
-                    navigator.changeScreen(SignInScreen())
+                    Text("Sign In")
                 }
-            }) {
-                Text("Sign In")
             }
         }
 

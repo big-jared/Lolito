@@ -24,6 +24,7 @@ val lightOrange = Color(0xffe67e22)
 val red = Color(0xffc0392b)
 val lightRed = Color(0xffe74c3c)
 
+val lighterGrey = Color(0xffF5F5F5)
 val lightGrey = Color(0xffD5D5D5)
 val medGrey = Color(0xff929292)
 val darkGrey = Color(0xff646464)
@@ -34,10 +35,10 @@ fun AppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = lightColorScheme(
             primary = medGrey,
-            background = lightBlue,
+            background = lighterGrey,
             secondary = Color.Transparent,
             onSecondary = Color.Black,
-            tertiary = almostTransparent,
+            tertiary = Color.Transparent,
             onTertiary = Color.White,
         ),
     ) {

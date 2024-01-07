@@ -1,7 +1,9 @@
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.bottomSheet.BottomSheetNavigator
+import cafe.adriel.voyager.transitions.SlideTransition
 import screens.SplashScreen
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -11,7 +13,9 @@ fun App() {
         BottomSheetNavigator(
             sheetBackgroundColor = Color.Transparent
         ) {
-            Navigation(startingScreen = SplashScreen())
+            Navigator(SplashScreen()) { navigator ->
+                SlideTransition(navigator)
+            }
         }
     }
 }
