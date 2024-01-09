@@ -26,15 +26,21 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import models.User
+import screens.SplashScreen
 import screens.home.HomeScreen
+import services.UserService
 
-class SignUpScreen: Screen {
+class SignUpScreen : Screen {
 
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         var dialogText by remember { mutableStateOf("") }
+        var displayName by remember { mutableStateOf("") }
         var username by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         val coScope = rememberCoroutineScope()
@@ -44,6 +50,16 @@ class SignUpScreen: Screen {
                 modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter)
                     .padding(bottom = 24.dp)
             ) {
+                Text(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                        .padding(vertical = 8.dp),
+                    text = "Display Name"
+                )
+                OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally),
+                    value = displayName,
+                    onValueChange = {
+                        displayName = it
+                    })
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                         .padding(vertical = 8.dp),
@@ -69,19 +85,18 @@ class SignUpScreen: Screen {
                 )
                 Button(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 24.dp),
                     onClick = {
-                        coScope.launch {
-                            coScope.launch {
-                                try {
-                                    Firebase.auth.createUserWithEmailAndPassword(
-                                        username, password
-                                    ).user?.let {
-                                        navigator.replaceAll(HomeScreen())
-                                    } ?: run {
-                                        dialogText = "Unexpected error occured"
-                                    }
-                                } catch (e: Exception) {
-                                    dialogText = e.message ?: ""
+                        coScope.launch(Dispatchers.IO) {
+                            try {
+                                Firebase.auth.createUserWithEmailAndPassword(
+                                    username, password
+                                ).user?.let {
+                                    UserService.setUser(User(it.uid, displayName))
+                                    navigator.replaceAll(SplashScreen())
+                                } ?: run {
+                                    dialogText = "Unexpected error occured"
                                 }
+                            } catch (e: Exception) {
+                                dialogText = e.message ?: ""
                             }
                         }
                     }) {

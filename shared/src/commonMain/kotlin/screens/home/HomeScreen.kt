@@ -1,6 +1,7 @@
 package screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -24,7 +26,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,31 +40,46 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import models.Group
 import models.Task
 import models.TaskType
-import models.allTasks
-import models.currentUser
 import screens.create.AddTasksScreen
+import screens.create.GroupScreenData
 import services.TaskService
+
+data class HomeScreenData(
+    val tasks: Map<TaskType, List<Task>>,
+)
 
 class HomeScreen : Screen {
 
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun Content() {
-        val tasksByType = allTasks.value.filter { it.assignee == currentUser }.groupBy { it.type }
+        var homeScreenData by remember { mutableStateOf<HomeScreenData?>(null) }
+
+        LaunchedEffect(null) {
+            withContext(Dispatchers.IO) {
+                homeScreenData = HomeScreenData(TaskService.getTasks())
+            }
+        }
+
         val navigator = LocalNavigator.currentOrThrow
         val coScope = rememberCoroutineScope()
 
-        Scaffold {
+        homeScreenData?.let { homeData ->
             Column(Modifier.fillMaxSize().padding(all = 8.dp)) {
                 Column(
                     modifier = Modifier.weight(1f),
@@ -65,10 +87,9 @@ class HomeScreen : Screen {
                 ) {
                     TasksHeader()
                     FlowRow(modifier = Modifier.padding(top = 8.dp)) {
-                        tasksByType.toList().sortedByDescending { it.first.name }
-                            .forEach { (type, tasks) ->
-                                TypeCard(type, tasks)
-                            }
+                        homeData.tasks.toList().sortedByDescending { it.first.name }.forEach { (type, tasks) ->
+                            TypeCard(type, tasks)
+                        }
                     }
                 }
                 Button(modifier = Modifier.fillMaxWidth(), onClick = {
@@ -79,12 +100,17 @@ class HomeScreen : Screen {
                     Text("Add Tasks")
                 }
             }
+        } ?: run {
+            Box(Modifier.fillMaxSize()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
         }
     }
 
     @Composable
     fun TasksHeader() {
         val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        val navigator = LocalNavigator.currentOrThrow
         val bottomSheetNavigator = LocalBottomSheetNavigator.current
 
         Row(modifier = Modifier.padding(horizontal = 8.dp)) {
@@ -107,7 +133,7 @@ class HomeScreen : Screen {
             FilledTonalIconButton(
                 modifier = Modifier.align(Alignment.CenterVertically),
                 onClick = {
-                    bottomSheetNavigator.show(SettingsSheet())
+                    bottomSheetNavigator.show(SettingsSheet(navigator))
                 }
             ) {
                 Icon(Icons.Rounded.Settings, "")
@@ -121,11 +147,11 @@ class HomeScreen : Screen {
             modifier = Modifier
                 .width(IntrinsicSize.Max)
                 .padding(4.dp)
-                .background(Color(type.lightColor), RoundedCornerShape(16.dp))
+                .background(Color(type.color), RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
         ) {
             Text(
-                modifier = Modifier.background(color = Color(type.darkColor))
+                modifier = Modifier.background(color = Color(type.color))
                     .padding(4.dp).padding(start = 4.dp).fillMaxWidth(),
                 text = type.name,
                 style = MaterialTheme.typography.headlineSmall
@@ -146,14 +172,14 @@ class HomeScreen : Screen {
                             },
                             colors = ButtonDefaults.filledTonalButtonColors(
                                 containerColor = if (task.complete) {
-                                    Color(type.darkColor)
+                                    Color(type.color)
                                 } else {
                                     MaterialTheme.colorScheme.background
                                 }
                             ),
                             contentPadding = PaddingValues()
                         ) {
-                            Icon(Icons.Filled.Check, "", tint = Color(type.lightColor))
+                            Icon(Icons.Filled.Check, "", tint = Color(type.color))
                         }
                     }
                 }

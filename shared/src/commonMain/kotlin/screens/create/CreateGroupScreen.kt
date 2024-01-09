@@ -70,7 +70,8 @@ class CreateGroupScreen : Screen {
                         onClick = {
                             coScope.launch {
                                 try {
-                                    GroupService.createGroup(name = groupName)
+                                    val group = GroupService.createGroup(name = groupName)
+                                    GroupService.setGroupActive(group)
                                     navigator.replaceAll(SplashScreen())
                                 } catch (e: Exception) {
                                     dialogText = e.message ?: ""

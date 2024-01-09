@@ -21,11 +21,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.launch
 import screens.SplashScreen
+import screens.create.GroupScreen
 
 interface BottomSheetScreen : Screen {
     @Composable
@@ -44,11 +47,11 @@ interface BottomSheetScreen : Screen {
     fun ColumnScope.BottomSheetContent()
 }
 
-class SettingsSheet : BottomSheetScreen {
+class SettingsSheet(val mainNavigator: Navigator) : BottomSheetScreen {
 
     @Composable
     override fun ColumnScope.BottomSheetContent() {
-        val navigator = LocalNavigator.currentOrThrow
+        val navigator = LocalBottomSheetNavigator.current
         val coScope = rememberCoroutineScope()
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text("Show tasks for User")
@@ -68,9 +71,22 @@ class SettingsSheet : BottomSheetScreen {
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     coScope.launch {
+                        navigator.hide()
+                        mainNavigator.push(GroupScreen())
+                    }
+                },
+                content = {
+                    Text("Switch Groups")
+                }
+            )
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    coScope.launch {
                         try {
+                            navigator.hide()
                             Firebase.auth.signOut()
-                            navigator.replaceAll(SplashScreen())
+                            mainNavigator.replaceAll(SplashScreen())
                         } catch (e: Exception) { }
                     }
                 },
