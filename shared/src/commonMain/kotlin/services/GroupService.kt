@@ -12,7 +12,7 @@ import screens.uid
 object GroupService {
     suspend fun getActiveGroup(): Group? = withContext(Dispatchers.IO) {
         try {
-            Firebase.firestore.document("/users/$uid").get().data<Group>().takeIf { it.groupId.isNotEmpty() }
+            Firebase.firestore.document("/users/$uid/groups/active").get().data<Group>().takeIf { it.groupId.isNotEmpty() }
         } catch (e: Exception) {
             null
         }
@@ -27,7 +27,7 @@ object GroupService {
     }
 
     suspend fun setGroupActive(group: Group) = withContext(Dispatchers.IO){
-        Firebase.firestore.document("/users/$uid")
+        Firebase.firestore.document("/users/$uid/groups/active")
             .set(Group.serializer(), group, encodeDefaults = true)
     }
 

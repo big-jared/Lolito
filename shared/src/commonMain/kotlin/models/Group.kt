@@ -16,6 +16,4 @@ data class Group(
 data class User(
     val userId: String,
     val displayName: String,
-    val fcmToken: String = "",
-    val apnsToken: String = "",
 )

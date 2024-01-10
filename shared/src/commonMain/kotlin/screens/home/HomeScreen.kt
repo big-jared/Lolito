@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,8 +46,10 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.gitlive.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -55,12 +58,13 @@ import kotlinx.datetime.toLocalDateTime
 import models.Group
 import models.Task
 import models.TaskType
+import models.User
 import screens.create.AddTasksScreen
 import screens.create.GroupScreenData
 import services.TaskService
 
 data class HomeScreenData(
-    val tasks: Map<TaskType, List<Task>>,
+    val tasks: Map<TaskType, Flow<QuerySnapshot>>,
 )
 
 class HomeScreen : Screen {
@@ -72,7 +76,7 @@ class HomeScreen : Screen {
 
         LaunchedEffect(null) {
             withContext(Dispatchers.IO) {
-                homeScreenData = HomeScreenData(TaskService.getTasks())
+                homeScreenData = HomeScreenData(tasks = TaskService.getTasks())
             }
         }
 
@@ -88,7 +92,10 @@ class HomeScreen : Screen {
                     TasksHeader()
                     FlowRow(modifier = Modifier.padding(top = 8.dp)) {
                         homeData.tasks.toList().sortedByDescending { it.first.name }.forEach { (type, tasks) ->
-                            TypeCard(type, tasks)
+                            val taskSnapshots by tasks.collectAsState(null)
+                            TypeCard(type, taskSnapshots?.documents?.map {
+                                it.data()
+                            } ?: emptyList())
                         }
                     }
                 }
@@ -143,6 +150,7 @@ class HomeScreen : Screen {
 
     @Composable
     fun TypeCard(type: TaskType, tasks: List<Task>) {
+        val coScope = rememberCoroutineScope()
         Column(
             modifier = Modifier
                 .width(IntrinsicSize.Max)
@@ -168,7 +176,9 @@ class HomeScreen : Screen {
                         FilledTonalButton(
                             modifier = Modifier.scale(.7f).align(Alignment.Top),
                             onClick = {
-//                                TaskService.completeTask(task)
+                                coScope.launch {
+                                    TaskService.setTask(task.copy(complete = !task.complete), type)
+                                }
                             },
                             colors = ButtonDefaults.filledTonalButtonColors(
                                 containerColor = if (task.complete) {

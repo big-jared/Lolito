@@ -9,7 +9,7 @@ import models.User
 
 object UserService {
     suspend fun setUser(user: User) = withContext(Dispatchers.IO) {
-        Firebase.firestore.document("/users/${user.userId}").set(User.serializer(), user, encodeDefaults = true)
+        Firebase.firestore.document("/users/${user.userId}").set(User.serializer(), user)
     }
 
     suspend fun getUser(userId: String): User? = withContext(Dispatchers.IO) {

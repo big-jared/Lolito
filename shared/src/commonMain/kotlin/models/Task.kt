@@ -15,9 +15,9 @@ data class Task(
     val name: String,
     val creator: User,
     val assignee: User? = null,
-    val complete: Boolean,
+    val complete: Boolean = false,
     val createdDate: Instant = now(),
-    val dueDate: Instant = now(),
+    val dueDate: Instant? = null,
     val repeatInterval: RepeatInterval = RepeatInterval.NONE
 )
 
