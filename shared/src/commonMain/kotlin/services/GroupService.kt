@@ -20,7 +20,7 @@ object GroupService {
 
     suspend fun getAllGroups(): List<Group> = withContext(Dispatchers.IO) {
         try {
-            Firebase.firestore.collection("users/$uid/groups").get().documents.map { it.data() }
+            Firebase.firestore.collection("users/$uid/groups").get().documents.filterNot { it.id == "active" }.map {it.data() }
         } catch (e: Exception) {
             emptyList()
         }

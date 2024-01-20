@@ -45,6 +45,9 @@ kotlin {
                 implementation("cafe.adriel.voyager:voyager-bottom-sheet-navigator:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
+
+                // lottie
+                implementation("io.github.ismai117:kottie:1.3.1")
             }
         }
         val androidMain by getting {

@@ -28,15 +28,13 @@ class SplashScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
 
         LaunchedEffect(null) {
-            withContext(Dispatchers.IO) {
-                navigator.push(
-                    when {
-                        uid == null -> Landing()
-                        GroupService.getActiveGroup() == null -> GroupScreen()
-                        else -> HomeScreen()
-                    }
-                )
-            }
+            navigator.push(
+                when {
+                    uid == null -> Landing()
+                    GroupService.getActiveGroup() == null -> GroupScreen()
+                    else -> HomeScreen()
+                }
+            )
         }
 
         Box(Modifier.fillMaxSize()) {
