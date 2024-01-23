@@ -41,8 +41,8 @@ fun AppTheme(content: @Composable () -> Unit) {
             background = lighterGrey,
             secondary = Color.Transparent,
             onSecondary = Color.Black,
-            tertiary = Color.Transparent,
-            onTertiary = Color.White,
+            tertiary = darkGrey,
+            onTertiary = lighterGrey,
         ),
     ) {
         content()

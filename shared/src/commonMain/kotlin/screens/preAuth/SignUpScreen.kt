@@ -2,6 +2,7 @@ package screens.preAuth
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -33,6 +35,7 @@ import models.User
 import screens.SplashScreen
 import screens.home.HomeScreen
 import services.UserService
+import utils.Lottie
 
 class SignUpScreen : Screen {
 
@@ -45,9 +48,13 @@ class SignUpScreen : Screen {
         var password by remember { mutableStateOf("") }
         val coScope = rememberCoroutineScope()
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Lottie(
+                modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = 16.dp),
+                fileName = "sign-up-animation.json"
+            )
             Column(
-                modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter)
+                modifier = Modifier.fillMaxWidth()
                     .padding(bottom = 24.dp)
             ) {
                 Text(
@@ -68,7 +75,7 @@ class SignUpScreen : Screen {
                 OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally),
                     value = username,
                     onValueChange = {
-                        username = it
+                        username = it.trim()
                     })
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -78,9 +85,10 @@ class SignUpScreen : Screen {
                 OutlinedTextField(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     value = password,
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    visualTransformation = PasswordVisualTransformation(),
                     onValueChange = {
-                        password = it
+                        password = it.trim()
                     },
                 )
                 Button(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 24.dp),

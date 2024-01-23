@@ -62,6 +62,7 @@ import models.User
 import screens.create.AddTasksScreen
 import screens.create.GroupScreenData
 import services.TaskService
+import utils.Lottie
 
 data class HomeScreenData(
     val tasks: Map<TaskType, Flow<QuerySnapshot>>,
@@ -90,12 +91,17 @@ class HomeScreen : Screen {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     TasksHeader()
-                    FlowRow(modifier = Modifier.padding(top = 8.dp)) {
-                        homeData.tasks.toList().sortedByDescending { it.first.name }.forEach { (type, tasks) ->
-                            val taskSnapshots by tasks.collectAsState(null)
-                            TypeCard(type, taskSnapshots?.documents?.map {
-                                it.data()
-                            } ?: emptyList())
+                    if (homeData.tasks.isEmpty()) {
+                        Lottie(modifier = Modifier.padding(16.dp), fileName = "empty-state.json")
+                    } else {
+                        FlowRow(modifier = Modifier.padding(top = 8.dp)) {
+                            homeData.tasks.toList().sortedByDescending { it.first.name }
+                                .forEach { (type, tasks) ->
+                                    val taskSnapshots by tasks.collectAsState(null)
+                                    TypeCard(type, taskSnapshots?.documents?.map {
+                                        it.data()
+                                    } ?: emptyList())
+                                }
                         }
                     }
                 }

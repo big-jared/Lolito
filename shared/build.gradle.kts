@@ -32,12 +32,14 @@ kotlin {
                 implementation("com.materialkolor:material-kolor:1.2.6")
                 implementation("com.google.accompanist:accompanist-flowlayout:0.19.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+                api("io.github.qdsfdhvh:image-loader:1.7.3")
 
-                val firebaseVersion = "1.10.0"
+                val firebaseVersion = "1.11.1"
 
                 // firebase
                 implementation("dev.gitlive:firebase-auth:$firebaseVersion")
                 implementation("dev.gitlive:firebase-firestore:$firebaseVersion")
+                implementation("dev.gitlive:firebase-storage:$firebaseVersion")
                 implementation("dev.gitlive:firebase-common:$firebaseVersion")
 
                 val voyagerVersion = "1.0.0-rc07"
