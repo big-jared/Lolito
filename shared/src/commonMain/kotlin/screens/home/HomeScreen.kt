@@ -1,5 +1,6 @@
 package screens.home
 
+import CircularProgress
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,7 +25,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,27 +42,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import blue
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.darkrockstudios.libraries.mpfilepicker.FilePicker
+import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.QuerySnapshot
+import dev.gitlive.firebase.storage.Progress
+import dev.gitlive.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import models.Group
 import models.Task
 import models.TaskType
-import models.User
 import screens.create.AddTasksScreen
-import screens.create.GroupScreenData
+import screens.uid
 import services.TaskService
+import toFile
 import utils.Lottie
 
 data class HomeScreenData(
@@ -117,6 +123,29 @@ class HomeScreen : Screen {
             Box(Modifier.fillMaxSize()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
+        }
+
+        val fileState = FileProcessor.state.value
+        FilePicker(show = fileState is FileSelectionState.PickingFile, fileExtensions = listOf("jpg", "png")) { platformFile ->
+            coScope.launch {
+                FileProcessor.uploadFile(platformFile?.path ?: return@launch)
+            }
+        }
+
+        if (fileState is FileSelectionState.Uploading) {
+            val progress = fileState.fileUploadProgress.collectAsState(null)
+            val percentage = (progress.value?.bytesTransferred?.toFloat() ?: 0f) / (progress.value?.totalByteCount?.toFloat() ?: 0f)
+
+            AlertDialog(
+                onDismissRequest = {},
+                title = {
+                    Text("Uploading Photo")
+                },
+                text = {
+                    CircularProgress(progress = percentage, activeColor = blue)
+                },
+                confirmButton = {},
+            )
         }
     }
 

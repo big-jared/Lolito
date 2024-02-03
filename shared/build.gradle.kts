@@ -28,11 +28,12 @@ kotlin {
                 implementation(compose.material)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
                 implementation("com.materialkolor:material-kolor:1.2.6")
                 implementation("com.google.accompanist:accompanist-flowlayout:0.19.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
-                api("io.github.qdsfdhvh:image-loader:1.7.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+                implementation("media.kamel:kamel-image:0.9.1")
+                implementation("com.darkrockstudios:mpfilepicker:3.1.0")
 
                 val firebaseVersion = "1.11.1"
 
@@ -42,11 +43,12 @@ kotlin {
                 implementation("dev.gitlive:firebase-storage:$firebaseVersion")
                 implementation("dev.gitlive:firebase-common:$firebaseVersion")
 
-                val voyagerVersion = "1.0.0-rc07"
+                val voyagerVersion = "1.1.0-alpha02"
                 implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-bottom-sheet-navigator:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
+                implementation("cafe.adriel.voyager:voyager-screenmodel:$voyagerVersion")
 
                 // lottie
                 implementation("io.github.ismai117:kottie:1.3.1")
@@ -57,6 +59,7 @@ kotlin {
                 api("androidx.activity:activity-compose:1.7.2")
                 api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.10.1")
+                implementation("com.google.accompanist:accompanist-permissions:0.32.0")
             }
         }
         val iosX64Main by getting

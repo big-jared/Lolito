@@ -1,33 +1,32 @@
 package screens.home
 
+import FileProcessor
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,18 +35,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
-import com.seiko.imageloader.rememberImagePainter
-import darkGrey
+import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
+import dev.gitlive.firebase.storage.File
+import dev.gitlive.firebase.storage.Progress
+import dev.gitlive.firebase.storage.ProgressFlow
 import dev.gitlive.firebase.storage.storage
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 import kotlinx.coroutines.launch
 import lightGrey
 import models.User
@@ -74,7 +76,7 @@ interface BottomSheetScreen : Screen {
 }
 
 @Composable
-fun ProfileIcon(modifier: Modifier) {
+fun ProfileIcon(modifier: Modifier, showFilePicker: () -> Unit) {
     var profileIconUrl by remember { mutableStateOf("") }
 
     LaunchedEffect(null) {
@@ -90,20 +92,20 @@ fun ProfileIcon(modifier: Modifier) {
             contentDescription = "image",
             contentScale = ContentScale.FillBounds,
         )
-        AnimatedVisibility(profileIconUrl.isNotBlank()) {
-            Image(
+        AnimatedVisibility(profileIconUrl.isNotBlank(), enter = fadeIn()) {
+            KamelImage(
                 modifier = modifier.clip(CircleShape),
-                painter = rememberImagePainter(profileIconUrl),
-                contentDescription = "image",
+                resource = asyncPainterResource(data = profileIconUrl),
+                contentDescription = "profile image",
                 contentScale = ContentScale.FillBounds,
             )
         }
         Image(
             modifier = Modifier.size(32.dp).background(color = lightGrey, shape = CircleShape).clip(CircleShape).align(Alignment.BottomEnd).clickable {
-                // edit
+                showFilePicker()
             }.padding(8.dp),
             painter = rememberVectorPainter(Icons.Default.Edit),
-            contentDescription = "image",
+            contentDescription = "profile image default",
             contentScale = ContentScale.FillBounds,
         )
     }
@@ -124,7 +126,9 @@ class SettingsSheet(val mainNavigator: Navigator) : BottomSheetScreen {
 
         Column(modifier = Modifier.padding(16.dp)) {
             Box(modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 16.dp)) {
-                ProfileIcon(modifier = Modifier.fillMaxWidth(.3f).aspectRatio(1f))
+                ProfileIcon(modifier = Modifier.fillMaxWidth(.3f).aspectRatio(1f)) {
+                    FileProcessor.startFileSelection()
+                }
             }
             AnimatedVisibility(user != null) {
                 Text(modifier = Modifier.padding(16.dp), text = user?.displayName ?: "", style = MaterialTheme.typography.titleLarge)
