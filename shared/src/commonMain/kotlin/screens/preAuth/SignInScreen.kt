@@ -79,7 +79,7 @@ class SignInScreen: Screen {
                                 Firebase.auth.signInWithEmailAndPassword(username, password).user?.let {
                                     navigator.replaceAll(HomeScreen())
                                 } ?: run {
-                                    dialogText = "Unexpected error occured"
+                                    dialogText = "Unexpected error occurred"
                                 }
                             } catch (e: Exception) {
                                 dialogText = e.message ?: ""

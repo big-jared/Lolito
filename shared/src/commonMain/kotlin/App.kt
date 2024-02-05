@@ -18,10 +18,10 @@ import cafe.adriel.voyager.transitions.SlideTransition
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.storage.File
 import dev.gitlive.firebase.storage.Progress
+import dev.gitlive.firebase.storage.ProgressFlow
 import dev.gitlive.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import screens.SplashScreen
 import screens.uid
@@ -29,7 +29,7 @@ import screens.uid
 sealed class FileSelectionState {
     data object NotSelecting : FileSelectionState()
     data object PickingFile : FileSelectionState()
-    class Uploading(val fileUploadProgress: Flow<Progress?>) : FileSelectionState()
+    class Uploading(val fileUploadProgress: ProgressFlow) : FileSelectionState()
 }
 
 object FileProcessor {
@@ -43,6 +43,15 @@ object FileProcessor {
     fun startFileSelection() {
         state.value = FileSelectionState.PickingFile
     }
+
+    fun completeFileTransfer() {
+        state.value = FileSelectionState.NotSelecting
+    }
+}
+
+
+object DialogController {
+
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -62,7 +71,7 @@ fun App() {
 @Composable
 fun CircularProgress(modifier: Modifier = Modifier, progress: Float, activeColor: Color) {
     val animatedProgress by animateFloatAsState(progress)
-    val outerColor = green
+    val outerColor = lightGrey
 
     Box(
         contentAlignment = Alignment.Center,
