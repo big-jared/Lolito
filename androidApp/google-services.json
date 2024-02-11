@@ -1,26 +1,36 @@
 {
   "project_info": {
-    "project_number": "220603047436",
-    "project_id": "lolito-48c4c",
-    "storage_bucket": "lolito-48c4c.appspot.com"
+    "project_number": "395798460214",
+    "project_id": "lifes-letters",
+    "storage_bucket": "lifes-letters.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:220603047436:android:87616a2a5f733673e41829",
+        "mobilesdk_app_id": "1:395798460214:android:a7004389ce755392946597",
         "android_client_info": {
-          "package_name": "com.myapplication.MyApplication"
+          "package_name": "com.jaredg.micro"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "395798460214-dpovu0ql08t0k7so6fj3imecn09rsv1a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyDa8VDpvTcvS374k4r5u-3zFCuTwAm-s6A"
+          "current_key": "AIzaSyC3q2FCmzExdsjZgFoYLlOGpwK9asyXA50"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "395798460214-dpovu0ql08t0k7so6fj3imecn09rsv1a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

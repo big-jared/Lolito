@@ -10,13 +10,15 @@ import randomUUID
 import screens.uid
 
 object GroupService {
+    var activeGroup: Group? = null
+
     suspend fun getActiveGroup(): Group? = withContext(Dispatchers.IO) {
         try {
             Firebase.firestore.document("/users/$uid/groups/active").get().data<Group>().takeIf { it.groupId.isNotEmpty() }
         } catch (e: Exception) {
             null
         }
-    }
+    }.also { activeGroup = it }
 
     suspend fun getAllGroups(): List<Group> = withContext(Dispatchers.IO) {
         try {
@@ -38,5 +40,8 @@ object GroupService {
         group
     }
 
-    suspend fun getActiveGroupPath(): String = "/groups/${getActiveGroup()?.groupId}"
+    fun getActiveGroupPath(): String {
+        activeGroup ?: return ""
+        return "/groups/${activeGroup?.groupId}"
+    }
 }

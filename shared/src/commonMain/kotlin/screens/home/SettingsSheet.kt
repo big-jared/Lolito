@@ -1,7 +1,6 @@
 package screens.home
 
 import BottomSheetScreen
-import FileProcessor
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -31,6 +30,7 @@ import screens.SplashScreen
 import screens.create.GroupScreen
 import screens.uid
 import services.UserService
+import utils.FileProcessor
 import utils.ImageEditOptions
 import utils.ProfileIcon
 

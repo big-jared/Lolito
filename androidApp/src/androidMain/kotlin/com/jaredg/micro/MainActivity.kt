@@ -1,11 +1,10 @@
-package com.myapplication
+package com.jaredg.micro
 
 import MainView
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.Firebase
-import com.google.firebase.FirebaseApp
 import com.google.firebase.initialize
 
 class MainActivity : AppCompatActivity() {

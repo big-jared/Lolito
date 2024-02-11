@@ -16,6 +16,7 @@ import screens.create.GroupScreen
 import screens.home.HomeScreen
 import screens.preAuth.Landing
 import services.GroupService
+import services.UserService.getCurrentUser
 
 val uid: String? get() = Firebase.auth.currentUser?.uid
 
@@ -27,7 +28,7 @@ class SplashScreen : Screen {
         LaunchedEffect(null) {
             navigator.push(
                 when {
-                    uid == null -> Landing()
+                    getCurrentUser() == null -> Landing()
                     GroupService.getActiveGroup() == null -> GroupScreen()
                     else -> HomeScreen()
                 }

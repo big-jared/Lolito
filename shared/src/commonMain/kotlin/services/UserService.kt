@@ -6,8 +6,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import models.User
+import screens.uid
 
 object UserService {
+    var currentUser: User? = null
+
+    suspend fun getCurrentUser(): User? = withContext(Dispatchers.IO) {
+        currentUser = getUser(uid ?: return@withContext null)
+        currentUser
+    }
+
     suspend fun setUser(user: User) = withContext(Dispatchers.IO) {
         Firebase.firestore.document("/users/${user.userId}").set(User.serializer(), user)
     }
