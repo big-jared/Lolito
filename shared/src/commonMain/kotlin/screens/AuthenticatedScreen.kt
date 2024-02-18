@@ -5,16 +5,28 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.ripple.LocalRippleTheme
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material.ripple.RippleTheme
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.tab.CurrentTab
@@ -53,36 +65,50 @@ object AuthenticatedScreen : Screen {
     }
 }
 
+private object NoRippleTheme : RippleTheme {
+    @Composable
+    override fun defaultColor() = Color.Unspecified
+
+    @Composable
+    override fun rippleAlpha(): RippleAlpha = RippleAlpha(0.0f, 0.0f, 0.0f, 0.0f)
+}
+
 @Composable
 private fun RowScope.TabNavigationItem(tab: Tab) {
     val tabNavigator = LocalTabNavigator.current
+    val color = if (tabNavigator.current == tab) {
+        MaterialTheme.colorScheme.primary.copy(alpha = .3f)
+    } else {
+        MaterialTheme.colorScheme.primaryContainer
+    }
 
-    BottomNavigationItem(
-        selected = tabNavigator.current == tab,
-        onClick = { tabNavigator.current = tab },
-        icon = {
-            Column(Modifier.align(Alignment.CenterVertically)) {
-                val color = animateColorAsState(
-                    if (tabNavigator.current == tab) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.primary.copy(alpha = .4f)
+    val ripple = LocalRippleTheme.current
+    CompositionLocalProvider(LocalRippleTheme provides NoRippleTheme) {
+
+        BottomNavigationItem(
+            selected = tabNavigator.current == tab,
+            onClick = { tabNavigator.current = tab },
+            icon = {
+                CompositionLocalProvider(LocalRippleTheme provides ripple) {
+
+                    FilledTonalIconButton(
+                        modifier = Modifier.width(64.dp),
+                        onClick = { tabNavigator.current = tab },
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = color
+                        )
+                    ) {
+                        Column(Modifier.align(Alignment.CenterVertically)) {
+                            Icon(
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                painter = tab.options.icon ?: return@Column,
+                                contentDescription = tab.options.title,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
-                ).value
-
-                Icon(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    painter = tab.options.icon ?: return@BottomNavigationItem,
-                    contentDescription = tab.options.title,
-                    tint = color
-                )
-                Text(
-                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 2.dp),
-                    text = tab.options.title,
-                    color = color,
-                    style = MaterialTheme.typography.labelLarge
-                )
+                }
             }
-        }
-    )
+        )
+    }
 }

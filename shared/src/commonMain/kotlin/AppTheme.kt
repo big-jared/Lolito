@@ -38,14 +38,14 @@ val medGrey = Color(0xff929292)
 val darkGrey = Color(0xff646464)
 
 var color = mutableStateOf(navy)
-//var style = mutableStateOf(PaletteStyle.Fidelity)
+var appStyle = mutableStateOf(PaletteStyle.FruitSalad)
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
     DynamicMaterialTheme(
         animate = true,
         seedColor = color.value,
-        style = PaletteStyle.FruitSalad,
+        style = appStyle.value,
         isExtendedFidelity = false,
         content = content
     )

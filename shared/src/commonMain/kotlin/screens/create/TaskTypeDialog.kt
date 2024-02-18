@@ -59,6 +59,7 @@ import red
 import screens.home.TaskViewModel
 import services.TaskService
 import utils.ColorHintCircle
+import utils.DialogColumn
 import utils.DialogCoordinator
 import yellow
 
@@ -77,7 +78,7 @@ fun TaskTypeDialogContent(type: TaskType?, onSave: (TaskType) -> Unit) {
 
     val horizontalPadding = Modifier.padding(horizontal = 16.dp)
 
-    Column(modifier = Modifier.background(MaterialTheme.colorScheme.background, RoundedCornerShape(16.dp)).padding(vertical = 16.dp)) {
+    DialogColumn {
         Row(modifier = horizontalPadding.fillMaxWidth()) {
             Text(
                 modifier = Modifier.weight(1f).align(Alignment.CenterVertically),

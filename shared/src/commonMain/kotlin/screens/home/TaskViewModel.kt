@@ -29,7 +29,9 @@ object TaskViewModel {
     }
 
     suspend fun putTask(screenTask: TaskScreenModel) = withContext(Dispatchers.IO) {
-        TaskService.setTask(screenTask.toTask(), screenTask.taskType.value ?: return@withContext)
+        screenTask.toTasks().forEach {
+            TaskService.setTask(it, screenTask.taskType.value ?: return@withContext)
+        }
         update()
     }
 }
