@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import models.Task
 import models.TaskType
+import screens.create.TaskScreenModel
 import services.TaskService
 
 object TaskViewModel {
@@ -20,5 +21,15 @@ object TaskViewModel {
 
     suspend fun update() = withContext(Dispatchers.IO) {
         taskMap.value = TaskService.getTaskTypes().associateWith { TaskService.getTasks(it) }
+    }
+
+    suspend fun putType(taskType: TaskType) = withContext(Dispatchers.IO) {
+        TaskService.setTaskType(taskType)
+        update()
+    }
+
+    suspend fun putTask(screenTask: TaskScreenModel) = withContext(Dispatchers.IO) {
+        TaskService.setTask(screenTask.toTask(), screenTask.taskType.value ?: return@withContext)
+        update()
     }
 }

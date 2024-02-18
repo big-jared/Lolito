@@ -15,7 +15,6 @@ import screens.SplashScreen
 import utils.DialogCoordinator
 import utils.DialogState
 
-
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun App() {

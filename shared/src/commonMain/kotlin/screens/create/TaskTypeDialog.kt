@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import blue
+import com.materialkolor.ktx.harmonizeWithPrimary
 import green
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -112,7 +113,8 @@ fun TaskTypeDialogContent(type: TaskType?, onSave: (TaskType) -> Unit) {
                 lightPurple,
                 navy,
                 lightNavy
-            ).forEach { color ->
+            ).forEach { rawColor ->
+                val color = MaterialTheme.colorScheme.harmonizeWithPrimary(rawColor)
                 val selected = selectedColor == color.toArgb()
                 ColorHintCircle(
                     modifier = Modifier.size(animateDpAsState(if (selected) 84.dp else 64.dp).value)
@@ -134,8 +136,7 @@ fun TaskTypeDialogContent(type: TaskType?, onSave: (TaskType) -> Unit) {
             onClick = {
                 coScope.launch(Dispatchers.IO) {
                     val taskType = type?.copy(name = title, color = selectedColor) ?: TaskType(name = title, color = selectedColor)
-                    TaskService.setTaskType(taskType)
-                    TaskViewModel.update()
+                    TaskViewModel.putType(taskType)
                     DialogCoordinator.close()
                     onSave(taskType)
                 }

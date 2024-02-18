@@ -31,6 +31,7 @@ object GroupService {
     suspend fun setGroupActive(group: Group) = withContext(Dispatchers.IO){
         Firebase.firestore.document("/users/$uid/groups/active")
             .set(Group.serializer(), group, encodeDefaults = true)
+        activeGroup = group
     }
 
     suspend fun createGroup(name: String): Group = withContext(Dispatchers.IO) {

@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -30,7 +31,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lighterGrey
 import screens.uid
 import toFile
 
@@ -84,11 +84,11 @@ fun FileSelector() {
                     CircularProgress(
                         modifier = Modifier.align(Alignment.Center).size(52.dp),
                         progress = percentage,
-                        activeColor = green
+                        activeColor = MaterialTheme.colorScheme.primary
                     )
                     AnimatedVisibility (modifier = Modifier.align(Alignment.Center), visible = complete, enter = fadeIn()) {
-                        Box(modifier = Modifier.size(52.dp).background(color = green, shape = CircleShape)) {
-                            Icon(modifier = Modifier.align(Alignment.Center), imageVector = Icons.Filled.Check, contentDescription = "", tint = lighterGrey)
+                        Box(modifier = Modifier.size(52.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape)) {
+                            Icon(modifier = Modifier.align(Alignment.Center), imageVector = Icons.Filled.Check, contentDescription = "", tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }

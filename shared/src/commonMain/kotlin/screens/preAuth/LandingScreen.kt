@@ -31,21 +31,17 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.materialkolor.ktx.lighten
 import darkGrey
 import kotlinx.coroutines.launch
-import lightGrey
-import lighterGrey
-import medGrey
 
 val EaseOutBounce: Easing = Easing { fraction ->
     val n1 = 7.5625f
@@ -72,6 +68,7 @@ class Landing : Screen {
     @Composable
     override fun Content() {
         val heightAnimatePercent = remember { Animatable(0f) }
+        val color = MaterialTheme.colorScheme.primary
 
         LaunchedEffect(null) {
             heightAnimatePercent.animateTo(
@@ -82,7 +79,7 @@ class Landing : Screen {
 
         Box(modifier = Modifier.fillMaxSize().clipToBounds()) {
             Box(Modifier.fillMaxSize().drawWithContent {
-                drawPath(backgroundCirclePath(heightAnimatePercent.value), darkGrey)
+                drawPath(backgroundCirclePath(heightAnimatePercent.value), color)
             })
             CompositionLocalProvider(
                 LocalContentColor provides Color.Black,
@@ -125,11 +122,11 @@ class Landing : Screen {
         Box(
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp)
                 .size(84.dp)
-                .background(shape = CircleShape, color = medGrey)
+                .background(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer)
         ) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(8.dp)
-                    .background(shape = CircleShape, color = lightGrey)
+                    .background(shape = CircleShape, color = MaterialTheme.colorScheme.primary.lighten(2f))
                     .clip(CircleShape)
                     .clickable {
                         coScope.launch {
@@ -141,7 +138,7 @@ class Landing : Screen {
                 modifier = Modifier.size(32.dp).align(Alignment.Center),
                 painter = rememberVectorPainter(Icons.Rounded.ArrowForward),
                 contentDescription = null,
-                tint = darkGrey
+                tint = MaterialTheme.colorScheme.primaryContainer
             )
         }
     }
@@ -160,18 +157,6 @@ class Landing : Screen {
                 )
             )
         }
-//        val radius = size.height * 3 * ((animatePercent / 2f) + .25f)
-//        path.reset()
-//        return path.apply {
-//            addOval(
-//                Rect(
-//                    left = (size.width / 2) - radius,
-//                    right = (size.width / 2) + radius,
-//                    bottom = (size.height * 2) + radius,
-//                    top = (size.height * 2) - radius,
-//                )
-//            )
-//        }
     }
 }
 

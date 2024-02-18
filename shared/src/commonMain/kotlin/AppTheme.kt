@@ -1,10 +1,16 @@
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import com.materialkolor.AnimatedDynamicMaterialTheme
+import com.materialkolor.DynamicMaterialTheme
+import com.materialkolor.PaletteStyle
+import com.materialkolor.rememberDynamicColorScheme
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.resource
@@ -27,24 +33,20 @@ val lightOrange = Color(0xffe67e22)
 val red = Color(0xffc0392b)
 val lightRed = Color(0xffe74c3c)
 
-val lighterGrey = Color(0xffF5F5F5)
 val lightGrey = Color(0xffD5D5D5)
 val medGrey = Color(0xff929292)
 val darkGrey = Color(0xff646464)
-val almostTransparent = Color(0xfdffffff)
+
+var color = mutableStateOf(navy)
+//var style = mutableStateOf(PaletteStyle.Fidelity)
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = lightColorScheme(
-            primary = medGrey,
-            background = lighterGrey,
-            secondary = Color.Transparent,
-            onSecondary = Color.Black,
-            tertiary = darkGrey,
-            onTertiary = lighterGrey,
-        ),
-    ) {
-        content()
-    }
+    DynamicMaterialTheme(
+        animate = true,
+        seedColor = color.value,
+        style = PaletteStyle.FruitSalad,
+        isExtendedFidelity = false,
+        content = content
+    )
 }

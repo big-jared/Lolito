@@ -1,6 +1,7 @@
 package screens.create
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -17,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,17 +30,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.launch
-import lightBlue
-import lightGrey
-import lighterGrey
 import models.Group
 import screens.SplashScreen
+import screens.home.TaskViewModel
 import services.GroupService
 
 data class GroupScreenData(
@@ -61,7 +62,10 @@ class GroupScreen : Screen {
             )
         }
 
-        Box(modifier = Modifier.fillMaxSize().background(lightGrey).padding(16.dp)) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+                .padding(16.dp)
+        ) {
             groupScreenData?.let { groupData ->
                 if (groupData.allGroups.isEmpty()) {
                     EmptyState()
@@ -84,19 +88,24 @@ class GroupScreen : Screen {
                             }
                         }
                         if (groupData.activeGroup != null) {
-                            Button(modifier = Modifier.align(Alignment.CenterHorizontally), onClick = {
-                                coScope.launch {
-                                    GroupService.setGroupActive(groupData.activeGroup)
-                                    navigator.replaceAll(SplashScreen())
-                                }
-                            }) {
+                            Button(
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                onClick = {
+                                    coScope.launch {
+                                        GroupService.setGroupActive(groupData.activeGroup)
+                                        TaskViewModel.update()
+                                        navigator.popUntilRoot()
+                                    }
+                                }) {
                                 Text("Switch to ${groupData.activeGroup.groupName}")
                             }
-                            TextButton(modifier = Modifier.align(Alignment.CenterHorizontally), onClick = {
-                                coScope.launch {
-                                    navigator.push(CreateGroupScreen())
-                                }
-                            }) {
+                            TextButton(
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                onClick = {
+                                    coScope.launch {
+                                        navigator.push(CreateGroupScreen())
+                                    }
+                                }) {
                                 Text("Create a Group")
                             }
                         }
@@ -110,20 +119,31 @@ class GroupScreen : Screen {
 
     @Composable
     fun GroupItem(group: Group, active: Boolean, onClick: (Group) -> Unit) {
-        val color = if (active) lightBlue else lighterGrey
-        Row(
+        val color =
+            if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+        Surface(
             modifier = Modifier.fillMaxSize().padding(8.dp)
-                .background(color = color, RoundedCornerShape(16.dp)).clickable { onClick(group) }) {
-            Text(modifier = Modifier.weight(1f).padding(16.dp), text = group.groupName)
-            if (active) {
-                Icon(
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                        .padding(end = 16.dp)
-                        .size(20.dp),
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = lightGrey
+                .background(color = color, RoundedCornerShape(16.dp))
+                .border(2.dp, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primary)
+                .clip(RoundedCornerShape(16.dp))
+                .clickable { onClick(group) },
+            color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background
+        ) {
+            Row{
+                Text(
+                    modifier = Modifier.weight(1f).padding(16.dp),
+                    text = group.groupName,
                 )
+                if (active) {
+                    Icon(
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                            .padding(end = 16.dp)
+                            .size(20.dp),
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
         }
     }

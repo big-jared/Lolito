@@ -23,36 +23,46 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
-import blue
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
-import darkGrey
+import com.materialkolor.ktx.harmonizeWithPrimary
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import lightGrey
 import lightRed
 import models.Task
 import models.TaskType
 import models.User
+import randomUUID
 import red
 import screens.home.TaskViewModel
 import services.UserService.currentUser
@@ -63,16 +73,32 @@ import utils.HighlightBox
 import utils.ProfileIcon
 
 data class TaskScreenModel(
-    val existing: Boolean = false,
+    val existingTask: Task? = null,
     val title: MutableState<String> = mutableStateOf(""),
     val taskType: MutableState<TaskType?> = mutableStateOf(null),
     val dueDate: MutableState<Instant> = mutableStateOf(now()),
     val assignedTo: MutableState<List<User>> = mutableStateOf(mutableListOf(currentUser!!)),
     val notes: MutableState<String> = mutableStateOf("")
 ) {
+    val existing: Boolean get() = existingTask != null
+    fun dueToday(): Boolean =
+        now().toLocalDateTime(TimeZone.currentSystemDefault()).date == dueDate.value.toLocalDateTime(
+            TimeZone.currentSystemDefault()
+        ).date
+
+    fun toTask(): Task = Task(
+        id = existingTask?.id ?: randomUUID(),
+        name = title.value,
+        creator = currentUser!!,
+        assignees = assignedTo.value,
+        complete = false,
+        dueDate = dueDate.value,
+        notes = notes.value
+    )
+
     companion object {
         fun fromExisting(task: Task, type: TaskType) = TaskScreenModel(
-            existing = true,
+            existingTask = task,
             title = mutableStateOf(task.name),
             taskType = mutableStateOf(type),
             dueDate = mutableStateOf(task.dueDate ?: now()),
@@ -86,6 +112,8 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
 
     @Composable
     override fun ColumnScope.BottomSheetContent() {
+        val nav = LocalBottomSheetNavigator.current
+        val coScope = rememberCoroutineScope()
         val horizontalPadding = Modifier.padding(horizontal = 16.dp)
         Column(
             modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
@@ -101,8 +129,14 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
         }
 
         Button(
-            modifier = horizontalPadding.fillMaxWidth().padding(vertical = 16.dp).height(64.dp),
-            onClick = {},
+            modifier = horizontalPadding.fillMaxWidth().padding(vertical = 16.dp)
+                .height(64.dp),
+            onClick = {
+                coScope.launch {
+                    TaskViewModel.putTask(model)
+                    nav.hide()
+                }
+            },
             shape = RoundedCornerShape(32.dp),
         ) {
             Text("Done", style = MaterialTheme.typography.bodyLarge)
@@ -153,13 +187,17 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                 "Project",
                 Modifier.align(Alignment.CenterVertically).padding(vertical = 8.dp)
             )
-            FlowRow(modifier = Modifier.align(Alignment.CenterVertically).weight(1f), horizontalArrangement = Arrangement.End) {
+            FlowRow(
+                modifier = Modifier.align(Alignment.CenterVertically).weight(1f),
+                horizontalArrangement = Arrangement.End
+            ) {
                 types.forEach {
-                    val color = Color(it.color)
-                    HighlightBox(modifier = Modifier.padding(4.dp).align(Alignment.CenterVertically),
+                    val color = it.derivedColor()
+                    HighlightBox(modifier = Modifier.padding(4.dp)
+                        .align(Alignment.CenterVertically),
                         text = it.name,
                         backgroundColor = if (model.taskType.value == it) color.copy(alpha = .5f) else lightGrey,
-                        color = darkGrey,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         frontIcon = { ColorHintCircle(Modifier.size(24.dp), color) },
                         onClick = { model.taskType.value = it },
                         onLongClick = {
@@ -177,8 +215,13 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun DueDateRow(modifier: Modifier) {
+        val selectedDate = model.dueDate.value.toLocalDateTime(TimeZone.currentSystemDefault())
+        val month = selectedDate.month.name.lowercase().capitalize(Locale.current).take(3)
+        val day = selectedDate.dayOfMonth + 1
+
         Row(modifier = modifier.padding(top = 16.dp)) {
             Text(
                 modifier = Modifier.align(Alignment.CenterVertically).weight(1f)
@@ -187,17 +230,43 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
             )
             HighlightBox(
                 modifier = Modifier.align(Alignment.CenterVertically),
-                text = "Today",
+                text = if (model.dueToday()) "Today" else "$month $day",
                 color = red,
-                backgroundColor = lightRed,
+                backgroundColor = MaterialTheme.colorScheme.harmonizeWithPrimary(lightRed),
                 frontIcon = {
                     Icon(
                         painter = rememberVectorPainter(
                             Icons.Default.DateRange
                         ),
                         contentDescription = "",
-                        tint = red
+                        tint = MaterialTheme.colorScheme.harmonizeWithPrimary(red)
                     )
+                },
+                onClick = {
+                    DialogCoordinator.show(DialogData {
+                        val state =
+                            rememberDatePickerState(initialSelectedDateMillis = model.dueDate.value.toEpochMilliseconds())
+                        DatePickerDialog(
+                            onDismissRequest = { DialogCoordinator.close() },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    model.dueDate.value = Instant.fromEpochMilliseconds(
+                                        state.selectedDateMillis ?: now().toEpochMilliseconds()
+                                    )
+                                    DialogCoordinator.close()
+                                }) {
+                                    Text("Ok")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { DialogCoordinator.close() }) {
+                                    Text("Cancel")
+                                }
+                            },
+                        ) {
+                            DatePicker(state = state)
+                        }
+                    })
                 })
         }
     }
@@ -227,7 +296,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
             Row {
                 Text(
                     "Advanced Settings",
-                    color = blue,
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Icon(
@@ -236,7 +305,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                         Icons.Default.KeyboardArrowRight
                     ),
                     contentDescription = "",
-                    tint = blue,
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
         }

@@ -29,11 +29,12 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-                implementation("com.materialkolor:material-kolor:1.2.6")
+                implementation("com.materialkolor:material-kolor:1.4.0-rc02")
                 implementation("com.google.accompanist:accompanist-flowlayout:0.19.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
                 implementation("media.kamel:kamel-image:0.9.1")
                 implementation("com.darkrockstudios:mpfilepicker:3.1.0")
+                implementation("com.eygraber:compose-color-picker:0.0.17")
 
                 val firebaseVersion = "1.11.1"
 
@@ -48,6 +49,8 @@ kotlin {
                 implementation("cafe.adriel.voyager:voyager-bottom-sheet-navigator:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
+                implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
+
 
                 // lottie
                 implementation("io.github.ismai117:kottie:1.3.1")

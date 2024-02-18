@@ -1,7 +1,11 @@
 package models
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import blue
+import com.materialkolor.ktx.harmonizeWithPrimary
 import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
@@ -34,6 +38,9 @@ data class TaskType(
     override fun equals(other: Any?): Boolean {
         return (other as? TaskType)?.id == this.id
     }
+
+    @Composable
+    fun derivedColor(): Color = MaterialTheme.colorScheme.harmonizeWithPrimary(Color(color))
 }
 
 val defaultTaskType = TaskType(

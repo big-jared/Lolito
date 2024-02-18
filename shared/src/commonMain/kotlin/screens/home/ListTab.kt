@@ -1,6 +1,7 @@
 package screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -10,11 +11,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -26,38 +30,39 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import cafe.adriel.voyager.navigator.tab.Tab
+import cafe.adriel.voyager.navigator.tab.TabOptions
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import models.Task
 import models.TaskType
+import screens.create.TaskScreenModel
 import screens.create.TaskSheet
 import services.TaskService
 import utils.FileSelector
 import utils.Lottie
 
-class HomeScreen : Screen {
+object ListTab : Tab {
 
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun Content() {
-        val bottomSheetNavigator = LocalBottomSheetNavigator.current
-        val coScope = rememberCoroutineScope()
-
         LaunchedEffect(null) {
             TaskViewModel.update()
         }
@@ -79,28 +84,18 @@ class HomeScreen : Screen {
                         }
                     }
                 }
-                Button(modifier = Modifier.fillMaxWidth(), onClick = {
-                    coScope.launch {
-                        bottomSheetNavigator.show(TaskSheet())
-                    }
-                }) {
-                    Text("Add Tasks")
-                }
             }
         } ?: run {
             Box(Modifier.fillMaxSize()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
-
-        FileSelector()
     }
 
     @Composable
     fun TasksHeader() {
-        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        val navigator = LocalNavigator.currentOrThrow
         val bottomSheetNavigator = LocalBottomSheetNavigator.current
+        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 
         Row(modifier = Modifier.padding(horizontal = 8.dp)) {
             Column(modifier = Modifier.weight(1f)) {
@@ -122,33 +117,36 @@ class HomeScreen : Screen {
             FilledTonalIconButton(
                 modifier = Modifier.align(Alignment.CenterVertically),
                 onClick = {
-                    bottomSheetNavigator.show(SettingsSheet(navigator))
+                    bottomSheetNavigator.show(TaskSheet())
                 }
             ) {
-                Icon(Icons.Rounded.Settings, "")
+                Icon(Icons.Rounded.Add, "")
             }
         }
     }
 
     @Composable
     fun TypeCard(type: TaskType, tasks: List<Task>) {
+        val navigator = LocalBottomSheetNavigator.current
         val coScope = rememberCoroutineScope()
         Column(
             modifier = Modifier
                 .width(IntrinsicSize.Max)
                 .padding(4.dp)
-                .background(Color(type.color), RoundedCornerShape(16.dp))
+                .background(type.derivedColor(), RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
         ) {
             Text(
-                modifier = Modifier.background(color = Color(type.color))
+                modifier = Modifier.background(color = type.derivedColor())
                     .padding(4.dp).padding(start = 4.dp).fillMaxWidth(),
                 text = type.name,
                 style = MaterialTheme.typography.headlineSmall
             )
             Column(modifier = Modifier.padding(all = 8.dp)) {
                 tasks.sortedBy { it.name }.forEach { task ->
-                    Row {
+                    Row(Modifier.clickable {
+                        navigator.show(TaskSheet(TaskScreenModel.fromExisting(task, type)))
+                    }) {
                         Text(
                             modifier = Modifier.weight(1f)
                                 .align(Alignment.CenterVertically),
@@ -160,22 +158,38 @@ class HomeScreen : Screen {
                             onClick = {
                                 coScope.launch {
                                     TaskService.setTask(task.copy(complete = !task.complete), type)
+                                    TaskViewModel.update()
                                 }
                             },
                             colors = ButtonDefaults.filledTonalButtonColors(
                                 containerColor = if (task.complete) {
-                                    Color(type.color)
+                                    type.derivedColor()
                                 } else {
                                     MaterialTheme.colorScheme.background
                                 }
                             ),
                             contentPadding = PaddingValues()
                         ) {
-                            Icon(Icons.Filled.Check, "", tint = Color(type.color))
+                            Icon(Icons.Filled.Check, "", tint = type.derivedColor())
                         }
                     }
                 }
             }
         }
     }
+
+    override val options: TabOptions
+        @Composable
+        get() {
+            val title = "Home"
+            val icon = rememberVectorPainter(Icons.Default.Home)
+
+            return remember {
+                TabOptions(
+                    index = 0u,
+                    title = title,
+                    icon = icon
+                )
+            }
+        }
 }
