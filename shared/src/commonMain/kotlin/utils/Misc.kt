@@ -18,6 +18,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material.ripple.RippleTheme
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -41,10 +48,20 @@ import io.kamel.image.asyncPainterResource
 import lightGrey
 import screens.uid
 
+object NoRippleTheme : RippleTheme {
+    @Composable
+    override fun defaultColor() = Color.Unspecified
+
+    @Composable
+    override fun rippleAlpha(): RippleAlpha = RippleAlpha(0.0f, 0.0f, 0.0f, 0.0f)
+}
+
 @Composable
 fun ColorHintCircle(modifier: Modifier = Modifier, color: Color) {
     Box(modifier.background(color = color, shape = CircleShape))
 }
+
+fun <T> List<T>.takeIfNotEmpty() = this.takeIf { it.isNotEmpty() }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -56,7 +73,7 @@ fun HighlightBox(
     backIcon: (@Composable () -> Unit)? = null,
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
-    text: String
+    text: String?
 ) {
     val mainColor = color ?: MaterialTheme.colorScheme.primary
     val background = backgroundColor ?: MaterialTheme.colorScheme.primaryContainer
@@ -72,14 +89,16 @@ fun HighlightBox(
                 frontIcon()
             }
         }
-        Text(
-            modifier = if (frontIcon == null) Modifier.padding(8.dp) else Modifier
-                .padding(end = 12.dp)
-                .align(Alignment.CenterVertically),
-            text = text,
-            color = mainColor,
-            style = MaterialTheme.typography.labelMedium
-        )
+        text?.let {
+            Text(
+                modifier = if (frontIcon == null) Modifier.padding(8.dp) else Modifier
+                    .padding(end = 12.dp)
+                    .align(Alignment.CenterVertically),
+                text = text,
+                color = mainColor,
+                style = MaterialTheme.typography.labelMedium
+            )
+        }
         if (backIcon != null) {
             Box(modifier = Modifier.padding(12.dp).size(32.dp)) {
                 backIcon()
@@ -160,5 +179,22 @@ fun CircularProgress(modifier: Modifier = Modifier, progress: Float, activeColor
                 style = Stroke(stroke)
             )
         }
+    }
+}
+
+
+@Composable
+fun AppIconButton(
+    modifier: Modifier,
+    onClick: () -> Unit,
+    painter: Painter = rememberVectorPainter(Icons.Rounded.Add),
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.primary
+) {
+    FilledTonalIconButton(
+        modifier = modifier, onClick = onClick,
+        colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = containerColor)
+    ) {
+        Icon(modifier = Modifier.fillMaxSize(.6f), painter = painter, contentDescription = "", tint = contentColor)
     }
 }

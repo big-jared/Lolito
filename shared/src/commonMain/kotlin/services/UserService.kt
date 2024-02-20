@@ -1,7 +1,9 @@
 package services
 
 import androidx.compose.ui.graphics.Color
+import appStyle
 import color
+import com.materialkolor.PaletteStyle
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +20,7 @@ object UserService {
         currentUser?.seedColor?.let {
             color.value = Color(it)
         }
+        appStyle.value = PaletteStyle.valueOf(currentUser?.style ?: PaletteStyle.FruitSalad.name)
         currentUser
     }
 

@@ -4,6 +4,7 @@ import BottomSheetScreen
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -15,28 +16,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -53,23 +55,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
-import com.materialkolor.ktx.harmonizeWithPrimary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import lightGrey
-import lightRed
 import models.Task
 import models.TaskType
 import models.User
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 import randomUUID
-import red
 import screens.home.TaskViewModel
 import services.UserService.currentUser
+import utils.AppIconButton
 import utils.ColorHintCircle
 import utils.DialogCoordinator
 import utils.DialogData
@@ -81,16 +86,63 @@ data class TaskScreenModel(
     val existingTask: Task? = null,
     val names: MutableState<List<MutableState<String>>> = mutableStateOf(listOf(mutableStateOf(""))),
     val taskType: MutableState<TaskType?> = mutableStateOf(null),
-    val dueDate: MutableState<Instant> = mutableStateOf(now()),
+    val dueDate: MutableState<Instant?> = mutableStateOf(null),
     val assignedTo: MutableState<List<User>> = mutableStateOf(mutableListOf(currentUser!!)),
     val notes: MutableState<String> = mutableStateOf(""),
     val dialogText: MutableState<String> = mutableStateOf("")
 ) {
     val existing: Boolean get() = existingTask != null
+
     fun dueToday(): Boolean =
-        now().toLocalDateTime(TimeZone.currentSystemDefault()).date == dueDate.value.toLocalDateTime(
+        now().toLocalDateTime(TimeZone.currentSystemDefault()).date == dueDate.value?.toLocalDateTime(
             TimeZone.currentSystemDefault()
-        ).date
+        )?.date
+
+    fun dueDate(): String {
+        val selectedDate =
+            dueDate.value?.toLocalDateTime(TimeZone.currentSystemDefault()) ?: return ""
+        val month = selectedDate.month.name.lowercase().capitalize(Locale.current).take(3)
+        val day = selectedDate.dayOfMonth + 1
+        return if (dueToday()) "Today" else "$month $day"
+    }
+
+    fun dueTime(): String {
+        val selectedDate =
+            (dueDate.value ?: now()).toLocalDateTime(TimeZone.currentSystemDefault())
+        val isAm = selectedDate.hour < 12
+        val minuteText =
+            if (selectedDate.minute > 10) selectedDate.minute else "0${selectedDate.minute}"
+        val hourText =
+            if (selectedDate.hour == 0) 12 else if (selectedDate.hour < 13) selectedDate.hour else selectedDate.hour - 12
+        return "$hourText:$minuteText ${if (isAm) "AM" else "PM"}"
+    }
+
+    fun setTime(minutes: Int, hours: Int) {
+        val date = (dueDate.value ?: now()).toLocalDateTime(TimeZone.currentSystemDefault())
+        dueDate.value = LocalDateTime(
+            year = date.year,
+            month = date.month,
+            dayOfMonth = date.dayOfMonth,
+            hour = hours,
+            minute = minutes
+        ).toInstant(
+            TimeZone.currentSystemDefault()
+        )
+    }
+
+    fun setDate(selectedDate: LocalDate) {
+        val date = (dueDate.value ?: now()).toLocalDateTime(TimeZone.currentSystemDefault())
+        dueDate.value = LocalDateTime(
+            year = selectedDate.year,
+            month = selectedDate.month,
+            dayOfMonth = selectedDate.dayOfMonth,
+            hour = date.hour,
+            minute = date.minute
+        ).toInstant(
+            TimeZone.currentSystemDefault()
+        )
+    }
+
 
     fun toTasks(): List<Task> = names.value.map {
         Task(
@@ -165,22 +217,39 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
         }
     }
 
+    @OptIn(ExperimentalResourceApi::class)
     @Composable
     fun HeaderRow(modifier: Modifier = Modifier) {
         val navigator = LocalBottomSheetNavigator.current
+        val coScope = rememberCoroutineScope()
 
         Column(modifier = Modifier.padding(vertical = 16.dp)) {
             Row(modifier = modifier) {
                 Text(
                     modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
-                    text = "Create new task",
+                    text = if (model.existing) "Edit task" else "Create new task",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
-                FilledTonalIconButton(modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = { navigator.hide() }) {
-                    Icon(Icons.Rounded.Close, "")
+                model.existingTask?.let {
+                    AppIconButton(
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        onClick = {
+                            coScope.launch {
+                                TaskViewModel.delete(it, model.taskType.value ?: return@launch)
+                                navigator.hide()
+                            }
+                        },
+                        painter = painterResource("delete.xml"),
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.error,
+                    )
                 }
+                AppIconButton(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    onClick = { navigator.hide() },
+                    rememberVectorPainter(Icons.Rounded.Close)
+                )
             }
             Text(modifier = modifier.padding(top = 16.dp), text = "Name")
             model.names.value.forEachIndexed { i, _ ->
@@ -189,7 +258,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
             TextButton(modifier = modifier.align(Alignment.End), onClick = { model.addName() }) {
                 Row {
                     Text(
-                        "Add Name",
+                        "Add another task",
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -222,7 +291,8 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                         onClick = {
                             coScope.launch(Dispatchers.IO) {
                                 state.targetState = false
-                                while (!state.isIdle) {}
+                                while (!state.isIdle) {
+                                }
                                 model.removeName(index)
                             }
                         }) {
@@ -270,22 +340,15 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                     )
                 }
             }
-            FilledTonalIconButton(modifier = Modifier.align(Alignment.CenterVertically),
-                onClick = {
-                    selectProject()
-                }) {
-                Icon(Icons.Rounded.Add, "")
-            }
+            AppIconButton(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                onClick = { selectProject() })
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
     @Composable
     fun DueDateRow(modifier: Modifier) {
-        val selectedDate = model.dueDate.value.toLocalDateTime(TimeZone.currentSystemDefault())
-        val month = selectedDate.month.name.lowercase().capitalize(Locale.current).take(3)
-        val day = selectedDate.dayOfMonth + 1
-
         Row(modifier = modifier.padding(top = 16.dp)) {
             Text(
                 modifier = Modifier.align(Alignment.CenterVertically).weight(1f)
@@ -294,7 +357,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
             )
             HighlightBox(
                 modifier = Modifier.align(Alignment.CenterVertically),
-                text = if (model.dueToday()) "Today" else "$month $day",
+                text = if (model.dueDate.value == null) "Select Date" else model.dueDate(),
                 color = MaterialTheme.colorScheme.primary,
                 backgroundColor = MaterialTheme.colorScheme.primaryContainer,
                 frontIcon = {
@@ -303,19 +366,21 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                             Icons.Default.DateRange
                         ),
                         contentDescription = "",
-                        tint = MaterialTheme.colorScheme.harmonizeWithPrimary(red)
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 },
                 onClick = {
                     DialogCoordinator.show(DialogData {
                         val state =
-                            rememberDatePickerState(initialSelectedDateMillis = model.dueDate.value.toEpochMilliseconds())
+                            rememberDatePickerState(initialSelectedDateMillis = model.dueDate.value?.toEpochMilliseconds())
                         DatePickerDialog(
                             onDismissRequest = { DialogCoordinator.close() },
                             confirmButton = {
                                 TextButton(onClick = {
-                                    model.dueDate.value = Instant.fromEpochMilliseconds(
-                                        state.selectedDateMillis ?: now().toEpochMilliseconds()
+                                    model.setDate(
+                                        Instant.fromEpochMilliseconds(
+                                            state.selectedDateMillis ?: now().toEpochMilliseconds()
+                                        ).toLocalDateTime(TimeZone.currentSystemDefault()).date
                                     )
                                     DialogCoordinator.close()
                                 }) {
@@ -332,6 +397,56 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                         }
                     })
                 })
+            HighlightBox(
+                modifier = Modifier.align(Alignment.CenterVertically).padding(start = 8.dp),
+                text = if (model.dueDate.value == null) "Select Time" else model.dueTime(),
+                color = MaterialTheme.colorScheme.primary,
+                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                frontIcon = {
+                    Icon(
+                        painterResource("schedule.xml"),
+                        null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
+                onClick = {
+                    DialogCoordinator.show(DialogData {
+                        val dateTime = (model.dueDate.value
+                            ?: now()).toLocalDateTime(TimeZone.currentSystemDefault())
+                        val state = rememberTimePickerState(
+                            initialHour = dateTime.hour,
+                            initialMinute = dateTime.minute,
+                        )
+                        Column(
+                            modifier = Modifier.background(
+                                MaterialTheme.colorScheme.background,
+                                shape = RoundedCornerShape(16.dp)
+                            ).padding(16.dp)
+                        ) {
+                            TimePicker(
+                                state = state,
+                            )
+                            FilledTonalButton(onClick = {
+                                model.setTime(state.minute, state.hour)
+                                DialogCoordinator.close()
+                            }) {
+                                Text("Set Time")
+                            }
+                        }
+                    })
+                })
+            AnimatedVisibility(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                visible = model.dueDate.value != null,
+            ) {
+                AppIconButton(
+                    modifier = Modifier.padding(start = 4.dp).size(24.dp)
+                        .align(Alignment.CenterVertically),
+                    painter = rememberVectorPainter(Icons.Rounded.Close),
+                    onClick = {
+                        model.dueDate.value = null
+                    })
+            }
         }
     }
 
@@ -340,11 +455,11 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
         Text(modifier = modifier.padding(top = 16.dp), text = "Assignee")
         Row(modifier = modifier.padding(top = 16.dp)) {
             ProfileIcon(modifier = Modifier.size(64.dp))
-            FilledTonalIconButton(modifier = Modifier.align(Alignment.CenterVertically)
-                .padding(start = 16.dp).size(64.dp),
-                onClick = { }) {
-                Icon(Icons.Rounded.Add, "")
-            }
+            AppIconButton(
+                modifier = Modifier.align(Alignment.CenterVertically).padding(start = 16.dp)
+                    .size(64.dp), onClick = {
+
+                })
         }
     }
 

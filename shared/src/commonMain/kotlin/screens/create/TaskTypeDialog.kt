@@ -1,6 +1,7 @@
 package screens.create
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -16,10 +17,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -54,6 +60,8 @@ import lightYellow
 import models.TaskType
 import navy
 import orange
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 import purple
 import red
 import screens.home.TaskViewModel
@@ -63,6 +71,7 @@ import utils.DialogColumn
 import utils.DialogCoordinator
 import yellow
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun TaskTypeDialogContent(type: TaskType?, onSave: (TaskType) -> Unit) {
     var selectedColor: Int by remember { mutableStateOf(type?.color ?: blue.toArgb()) }
@@ -86,9 +95,26 @@ fun TaskTypeDialogContent(type: TaskType?, onSave: (TaskType) -> Unit) {
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
+            type?.let {
+                FilledTonalIconButton(modifier = Modifier.align(Alignment.CenterVertically),
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    onClick = {
+                        coScope.launch(Dispatchers.IO) {
+                            TaskViewModel.delete(type)
+                            DialogCoordinator.close()
+                        }
+                    }) {
+                    Icon(
+                        painterResource("delete.xml"),
+                        null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
             FilledTonalIconButton(modifier = Modifier.align(Alignment.CenterVertically),
                 onClick = { DialogCoordinator.close() }) {
-                Icon(Icons.Rounded.Close, "")
+                Icon(Icons.Rounded.Close, "", tint = MaterialTheme.colorScheme.primary)
             }
         }
         Text(modifier = horizontalPadding.padding(top = 16.dp), text = "Title")
@@ -136,7 +162,10 @@ fun TaskTypeDialogContent(type: TaskType?, onSave: (TaskType) -> Unit) {
             modifier = horizontalPadding.padding(top = 16.dp).align(Alignment.CenterHorizontally),
             onClick = {
                 coScope.launch(Dispatchers.IO) {
-                    val taskType = type?.copy(name = title, color = selectedColor) ?: TaskType(name = title, color = selectedColor)
+                    val taskType = type?.copy(name = title, color = selectedColor) ?: TaskType(
+                        name = title,
+                        color = selectedColor
+                    )
                     TaskViewModel.putType(taskType)
                     DialogCoordinator.close()
                     onSave(taskType)

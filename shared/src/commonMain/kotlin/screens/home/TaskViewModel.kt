@@ -34,4 +34,14 @@ object TaskViewModel {
         }
         update()
     }
+
+    suspend fun delete(taskType: TaskType) = withContext(Dispatchers.IO) {
+        TaskService.deleteTaskType(taskType)
+        update()
+    }
+
+    suspend fun delete(task: Task, taskType: TaskType) = withContext(Dispatchers.IO) {
+        TaskService.deleteTask(task, taskType)
+        update()
+    }
 }

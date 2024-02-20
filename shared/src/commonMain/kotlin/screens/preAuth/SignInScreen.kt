@@ -48,11 +48,10 @@ class SignInScreen: Screen {
         var username by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         var dialogText by remember { mutableStateOf("") }
-        val keyboardController = LocalSoftwareKeyboardController.current
 
         val coScope = rememberCoroutineScope()
 
-        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().clickable { keyboardController?.hide() }) {
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             Lottie(modifier = Modifier.fillMaxWidth().weight(1f).padding(16.dp), fileName = "flower-animation.json", iterations = 1)
             Column(
                 modifier = Modifier.fillMaxWidth()

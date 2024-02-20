@@ -13,7 +13,8 @@ object TaskService {
     suspend fun getTasks(type: TaskType): List<Task> = withContext(Dispatchers.IO) {
         try {
             val groupPath = GroupService.getActiveGroupPath()
-            return@withContext Firebase.firestore.collection("$groupPath/taskTypes/${type.id}/tasks").get().documents.map { it.data() }
+            return@withContext Firebase.firestore.collection("$groupPath/taskTypes/${type.id}/tasks")
+                .get().documents.map { it.data() }
         } catch (e: Exception) {
             return@withContext emptyList()
         }
@@ -22,7 +23,8 @@ object TaskService {
     suspend fun getTaskTypes(): List<TaskType> = withContext(Dispatchers.IO) {
         try {
             val groupPath = GroupService.getActiveGroupPath()
-            return@withContext Firebase.firestore.collection("${groupPath}/taskTypes").get().documents.map { it.data() }
+            return@withContext Firebase.firestore.collection("${groupPath}/taskTypes")
+                .get().documents.map { it.data() }
         } catch (e: Exception) {
             return@withContext emptyList()
         }
@@ -34,7 +36,8 @@ object TaskService {
             val groupPath = GroupService.getActiveGroupPath()
             Firebase.firestore.document("$groupPath/taskTypes/${taskType.id}/tasks/${task.id}")
                 .set(task)
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+        }
     }
 
     suspend fun setTaskType(taskType: TaskType) = withContext(Dispatchers.IO) {
@@ -42,6 +45,25 @@ object TaskService {
         try {
             val groupPath = GroupService.getActiveGroupPath()
             Firebase.firestore.document("$groupPath/taskTypes/${taskType.id}").set(taskType)
-        } catch (e: Exception) { }
+        } catch (e: Exception) {
+        }
+    }
+
+
+    suspend fun deleteTask(task: Task, taskType: TaskType) = withContext(Dispatchers.IO) {
+        try {
+            val groupPath = GroupService.getActiveGroupPath()
+            Firebase.firestore.document("$groupPath/taskTypes/${taskType.id}/tasks/${task.id}")
+                .delete()
+        } catch (e: Exception) {
+        }
+    }
+
+    suspend fun deleteTaskType(taskType: TaskType) = withContext(Dispatchers.IO) {
+        try {
+            val groupPath = GroupService.getActiveGroupPath()
+            Firebase.firestore.document("$groupPath/taskTypes/${taskType.id}").delete()
+        } catch (e: Exception) {
+        }
     }
 }

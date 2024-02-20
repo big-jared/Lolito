@@ -1,44 +1,38 @@
 package screens
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.tab.CurrentTab
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabNavigator
-import com.materialkolor.ktx.darken
-import com.materialkolor.ktx.lighten
 import screens.home.ListTab
 import screens.home.ScheduleTab
 import screens.home.SettingsTab
-
+import utils.NoRippleTheme
 
 object AuthenticatedScreen : Screen {
 
@@ -52,25 +46,21 @@ object AuthenticatedScreen : Screen {
                     }
                 },
                 bottomBar = {
-                    BottomNavigation(
-                        backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                    ) {
-                        TabNavigationItem(ListTab)
-                        TabNavigationItem(ScheduleTab)
-                        TabNavigationItem(SettingsTab)
+                    Box(modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer).zIndex(3f)) {
+                        BottomNavigation(
+                            modifier = Modifier.systemBarsPadding(),
+                            backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                            elevation = 0.dp
+                        ) {
+                            TabNavigationItem(ListTab)
+                            TabNavigationItem(ScheduleTab)
+                            TabNavigationItem(SettingsTab)
+                        }
                     }
                 }
             )
         }
     }
-}
-
-private object NoRippleTheme : RippleTheme {
-    @Composable
-    override fun defaultColor() = Color.Unspecified
-
-    @Composable
-    override fun rippleAlpha(): RippleAlpha = RippleAlpha(0.0f, 0.0f, 0.0f, 0.0f)
 }
 
 @Composable
@@ -84,13 +74,11 @@ private fun RowScope.TabNavigationItem(tab: Tab) {
 
     val ripple = LocalRippleTheme.current
     CompositionLocalProvider(LocalRippleTheme provides NoRippleTheme) {
-
         BottomNavigationItem(
             selected = tabNavigator.current == tab,
             onClick = { tabNavigator.current = tab },
             icon = {
                 CompositionLocalProvider(LocalRippleTheme provides ripple) {
-
                     FilledTonalIconButton(
                         modifier = Modifier.width(64.dp),
                         onClick = { tabNavigator.current = tab },

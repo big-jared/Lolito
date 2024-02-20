@@ -1,7 +1,7 @@
 package models
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.toArgb
+import com.materialkolor.PaletteStyle
 import kotlinx.serialization.Serializable
 import orange
 
@@ -20,4 +20,5 @@ data class User(
     val userId: String,
     val displayName: String,
     val seedColor: Int? = orange.toArgb(),
+    val style: String? = PaletteStyle.FruitSalad.name
 )
