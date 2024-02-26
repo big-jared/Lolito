@@ -66,6 +66,7 @@ import purple
 import red
 import screens.home.TaskViewModel
 import services.TaskService
+import utils.AppIconButton
 import utils.ColorHintCircle
 import utils.DialogColumn
 import utils.DialogCoordinator
@@ -96,20 +97,18 @@ fun TaskTypeDialogContent(type: TaskType?, onSave: (TaskType) -> Unit) {
                 fontWeight = FontWeight.SemiBold
             )
             type?.let {
-                FilledTonalIconButton(modifier = Modifier.align(Alignment.CenterVertically),
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                AppIconButton(
+                    modifier = Modifier.align(Alignment.CenterVertically),
                     onClick = {
                         coScope.launch(Dispatchers.IO) {
                             TaskViewModel.delete(type)
                             DialogCoordinator.close()
                         }
-                    }) {
-                    Icon(
-                        painterResource("delete.xml"),
-                        null,
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
+                    },
+                    painter = painterResource("delete.xml"),
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.error,
+                )
             }
 
             FilledTonalIconButton(modifier = Modifier.align(Alignment.CenterVertically),

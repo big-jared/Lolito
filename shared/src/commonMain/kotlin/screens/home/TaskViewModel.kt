@@ -44,4 +44,6 @@ object TaskViewModel {
         TaskService.deleteTask(task, taskType)
         update()
     }
+
+    fun allTasks() = taskMap.value?.values?.flatten()?.toSet() ?: emptySet()
 }

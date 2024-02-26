@@ -9,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,6 +42,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.materialkolor.ktx.darken
+import com.materialkolor.ktx.lighten
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.storage.storage
 import io.kamel.image.KamelImage
@@ -54,6 +57,24 @@ object NoRippleTheme : RippleTheme {
 
     @Composable
     override fun rippleAlpha(): RippleAlpha = RippleAlpha(0.0f, 0.0f, 0.0f, 0.0f)
+}
+
+@Composable
+fun Color.increaseContrast(ratio: Float = 1f): Color {
+    return if (isSystemInDarkTheme()) {
+        this.darken(ratio)
+    } else {
+        this.lighten(ratio)
+    }
+}
+
+@Composable
+fun Color.decreaseContrast(ratio: Float = 1f): Color {
+    return if (isSystemInDarkTheme()) {
+        this.lighten(ratio)
+    } else {
+        this.darken(ratio)
+    }
 }
 
 @Composable

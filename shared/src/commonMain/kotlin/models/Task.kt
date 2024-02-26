@@ -10,6 +10,7 @@ import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import randomUUID
+import screens.home.Schedulable
 import services.UserService
 
 enum class RepeatInterval {
@@ -26,8 +27,10 @@ data class Task(
     val createdDate: Instant = now(),
     val dueDate: Instant? = null,
     val repeatInterval: RepeatInterval = RepeatInterval.NONE,
-    val notes: String? = null
-)
+    val notes: String? = null,
+) : Schedulable {
+    override val time: Instant? = dueDate
+}
 
 @Serializable
 data class TaskType(

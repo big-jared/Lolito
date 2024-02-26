@@ -9,7 +9,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -47,92 +49,96 @@ class SignUpScreen : Screen {
         var password by remember { mutableStateOf("") }
         val coScope = rememberCoroutineScope()
 
-        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            Lottie(
-                modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = 16.dp),
-                fileName = "sign-up-animation.json"
-            )
-            Column(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(bottom = 24.dp)
-            ) {
-                Text(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                        .padding(vertical = 8.dp),
-                    text = "Display Name"
+
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                Lottie(
+                    modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = 16.dp),
+                    fileName = "sign-up-animation.json"
                 )
-                OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally),
-                    value = displayName,
-                    onValueChange = {
-                        displayName = it
-                    })
-                Text(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                        .padding(vertical = 8.dp),
-                    text = "Username/Email"
-                )
-                OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally),
-                    value = username,
-                    onValueChange = {
-                        username = it.trim()
-                    })
-                Text(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                        .padding(vertical = 8.dp),
-                    text = "Password"
-                )
-                OutlinedTextField(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    value = password,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    visualTransformation = PasswordVisualTransformation(),
-                    onValueChange = {
-                        password = it.trim()
-                    },
-                )
-                Button(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 24.dp),
-                    onClick = {
-                        coScope.launch(Dispatchers.IO) {
-                            try {
-                                Firebase.auth.createUserWithEmailAndPassword(
-                                    username, password
-                                ).user?.let {
-                                    UserService.setUser(User(it.uid, displayName))
-                                    navigator.replaceAll(SplashScreen())
-                                } ?: run {
-                                    dialogText = "Unexpected error occured"
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(bottom = 24.dp)
+                ) {
+                    Text(
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                            .padding(vertical = 8.dp),
+                        text = "Display Name"
+                    )
+                    OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally),
+                        value = displayName,
+                        onValueChange = {
+                            displayName = it
+                        })
+                    Text(
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                            .padding(vertical = 8.dp),
+                        text = "Username/Email"
+                    )
+                    OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally),
+                        value = username,
+                        onValueChange = {
+                            username = it.trim()
+                        })
+                    Text(
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                            .padding(vertical = 8.dp),
+                        text = "Password"
+                    )
+                    OutlinedTextField(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        value = password,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        visualTransformation = PasswordVisualTransformation(),
+                        onValueChange = {
+                            password = it.trim()
+                        },
+                    )
+                    Button(modifier = Modifier.align(Alignment.CenterHorizontally)
+                        .padding(top = 24.dp),
+                        onClick = {
+                            coScope.launch(Dispatchers.IO) {
+                                try {
+                                    Firebase.auth.createUserWithEmailAndPassword(
+                                        username, password
+                                    ).user?.let {
+                                        UserService.setUser(User(it.uid, displayName))
+                                        navigator.replaceAll(SplashScreen())
+                                    } ?: run {
+                                        dialogText = "Unexpected error occured"
+                                    }
+                                } catch (e: Exception) {
+                                    dialogText = e.message ?: ""
                                 }
-                            } catch (e: Exception) {
-                                dialogText = e.message ?: ""
                             }
+                        }) {
+                        Text("Sign Up")
+                    }
+                    TextButton(modifier = Modifier.align(Alignment.CenterHorizontally), onClick = {
+                        coScope.launch {
+                            navigator.pop()
                         }
                     }) {
-                    Text("Sign Up")
-                }
-                TextButton(modifier = Modifier.align(Alignment.CenterHorizontally), onClick = {
-                    coScope.launch {
-                        navigator.pop()
+                        Text("Sign In")
                     }
-                }) {
-                    Text("Sign In")
                 }
             }
-        }
 
-        if (dialogText.isNotEmpty()) {
-            AlertDialog(
-                onDismissRequest = { dialogText = "" },
-                text = {
-                    Text(dialogText)
-                },
-                confirmButton = {
-                    Button(modifier = Modifier.fillMaxWidth(),
-                        onClick = { dialogText = "" },
-                        content = {
-                            Text("Ok")
-                        })
-                },
-            )
+            if (dialogText.isNotEmpty()) {
+                AlertDialog(
+                    onDismissRequest = { dialogText = "" },
+                    text = {
+                        Text(dialogText)
+                    },
+                    confirmButton = {
+                        Button(modifier = Modifier.fillMaxWidth(),
+                            onClick = { dialogText = "" },
+                            content = {
+                                Text("Ok")
+                            })
+                    },
+                )
+            }
         }
     }
 }

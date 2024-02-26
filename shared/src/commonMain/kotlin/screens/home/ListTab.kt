@@ -58,12 +58,16 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import models.Task
 import models.TaskType
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 import screens.create.TaskScreenModel
 import screens.create.TaskSheet
 import services.TaskService
 import utils.AppIconButton
 import utils.FileSelector
 import utils.Lottie
+import utils.decreaseContrast
+import utils.increaseContrast
 import utils.takeIfNotEmpty
 
 object ListTab : Tab {
@@ -100,6 +104,7 @@ object ListTab : Tab {
         }
     }
 
+    @OptIn(ExperimentalResourceApi::class)
     @Composable
     fun TasksHeader() {
         val bottomSheetNavigator = LocalBottomSheetNavigator.current
@@ -124,6 +129,11 @@ object ListTab : Tab {
             }
             AppIconButton(
                 modifier = Modifier.align(Alignment.CenterVertically),
+                painter = painterResource("filter.xml"),
+                onClick = {  bottomSheetNavigator.show(TaskSheet()) },
+            )
+            AppIconButton(
+                modifier = Modifier.align(Alignment.CenterVertically),
                 onClick = {  bottomSheetNavigator.show(TaskSheet()) },
             )
         }
@@ -140,9 +150,9 @@ object ListTab : Tab {
                 .border(
                     2.dp,
                     shape = RoundedCornerShape(16.dp),
-                    color = type.derivedColor().darken()
+                    color = type.derivedColor().decreaseContrast()
                 )
-                .background(type.derivedColor().lighten(2f), RoundedCornerShape(16.dp))
+                .background(type.derivedColor().increaseContrast(2f), RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
                 .padding(16.dp)
         ) {
@@ -178,7 +188,7 @@ object ListTab : Tab {
                             ),
                             colors = ButtonDefaults.filledTonalButtonColors(
                                 containerColor = if (task.complete) {
-                                    type.derivedColor().lighten(2f)
+                                    type.derivedColor().increaseContrast(2f)
                                 } else {
                                     MaterialTheme.colorScheme.background
                                 }
