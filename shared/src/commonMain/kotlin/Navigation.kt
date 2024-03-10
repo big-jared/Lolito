@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import com.materialkolor.ktx.harmonizeWithPrimary
 
-// override of Screen with bottom-sheet styling
 interface BottomSheetScreen : Screen {
     @Composable
     override fun Content() {

@@ -58,6 +58,8 @@ import lightPurple
 import lightRed
 import lightYellow
 import models.TaskType
+import myapplication.shared.generated.resources.Res
+import myapplication.shared.generated.resources.delete
 import navy
 import orange
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -105,7 +107,7 @@ fun TaskTypeDialogContent(type: TaskType?, onSave: (TaskType) -> Unit) {
                             DialogCoordinator.close()
                         }
                     },
-                    painter = painterResource("delete.xml"),
+                    painter = painterResource(Res.drawable.delete),
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.error,
                 )

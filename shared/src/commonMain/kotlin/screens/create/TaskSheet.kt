@@ -28,10 +28,8 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -62,6 +60,7 @@ import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
@@ -69,6 +68,9 @@ import lightGrey
 import models.Task
 import models.TaskType
 import models.User
+import myapplication.shared.generated.resources.Res
+import myapplication.shared.generated.resources.delete
+import myapplication.shared.generated.resources.schedule
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import randomUUID
@@ -81,6 +83,7 @@ import utils.DialogData
 import utils.HighlightBox
 import utils.ProfileIcon
 import utils.showSimpleDialog
+import utils.toHourMinuteString
 
 data class TaskScreenModel(
     val existingTask: Task? = null,
@@ -107,15 +110,11 @@ data class TaskScreenModel(
     }
 
     fun dueTime(): String {
-        val selectedDate =
-            (dueDate.value ?: now()).toLocalDateTime(TimeZone.currentSystemDefault())
-        val isAm = selectedDate.hour < 12
-        val minuteText =
-            if (selectedDate.minute > 10) selectedDate.minute else "0${selectedDate.minute}"
-        val hourText =
-            if (selectedDate.hour == 0) 12 else if (selectedDate.hour < 13) selectedDate.hour else selectedDate.hour - 12
-        return "$hourText:$minuteText ${if (isAm) "AM" else "PM"}"
+        val selectedDate = (dueDate.value ?: now()).toLocalDateTime(TimeZone.currentSystemDefault())
+       return selectedDate.time.toHourMinuteString()
     }
+
+
 
     fun setTime(minutes: Int, hours: Int) {
         val date = (dueDate.value ?: now()).toLocalDateTime(TimeZone.currentSystemDefault())
@@ -240,7 +239,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                                 navigator.hide()
                             }
                         },
-                        painter = painterResource("delete.xml"),
+                        painter = painterResource(Res.drawable.delete),
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.error,
                     )
@@ -286,18 +285,16 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                     onValueChange = { model.names.value[index].value = it },
                     placeholder = { Text("Redesign this app") })
                 if (index > 0) {
-                    FilledTonalIconButton(modifier = Modifier.align(Alignment.CenterVertically)
-                        .padding(top = 8.dp, end = 16.dp),
-                        onClick = {
-                            coScope.launch(Dispatchers.IO) {
-                                state.targetState = false
-                                while (!state.isIdle) {
-                                }
-                                model.removeName(index)
-                            }
-                        }) {
-                        Icon(Icons.Rounded.Close, "")
-                    }
+                    AppIconButton(
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                            .padding(top = 8.dp, end = 16.dp),
+                        onClick = { coScope.launch(Dispatchers.IO) {
+                            state.targetState = false
+                            while (!state.isIdle) {}
+                            model.removeName(index)
+                        } },
+                        rememberVectorPainter(Icons.Rounded.Close)
+                    )
                 }
             }
         }
@@ -404,7 +401,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                 backgroundColor = MaterialTheme.colorScheme.primaryContainer,
                 frontIcon = {
                     Icon(
-                        painterResource("schedule.xml"),
+                        painterResource(Res.drawable.schedule),
                         null,
                         tint = MaterialTheme.colorScheme.primary
                     )

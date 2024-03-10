@@ -58,6 +58,8 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import models.Task
 import models.TaskType
+import myapplication.shared.generated.resources.Res
+import myapplication.shared.generated.resources.filter
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import screens.create.TaskScreenModel
@@ -129,7 +131,7 @@ object ListTab : Tab {
             }
             AppIconButton(
                 modifier = Modifier.align(Alignment.CenterVertically),
-                painter = painterResource("filter.xml"),
+                painter = painterResource(Res.drawable.filter),
                 onClick = {  bottomSheetNavigator.show(TaskSheet()) },
             )
             AppIconButton(

@@ -26,6 +26,7 @@ kotlin {
                 implementation(compose.foundation)
                 implementation(compose.material3)
                 implementation(compose.material)
+                implementation(compose.components.resources)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
@@ -94,4 +95,7 @@ android {
     kotlin {
         jvmToolchain(17)
     }
+}
+dependencies {
+    implementation("androidx.core:core-ktx:+")
 }

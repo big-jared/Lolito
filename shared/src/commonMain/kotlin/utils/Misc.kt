@@ -209,8 +209,8 @@ fun AppIconButton(
     modifier: Modifier,
     onClick: () -> Unit,
     painter: Painter = rememberVectorPainter(Icons.Rounded.Add),
-    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
-    contentColor: Color = MaterialTheme.colorScheme.primary
+    containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.secondary
 ) {
     FilledTonalIconButton(
         modifier = modifier, onClick = onClick,
