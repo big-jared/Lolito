@@ -8,13 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -22,8 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,13 +35,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFontFamilyResolver
@@ -56,11 +63,16 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import cafe.adriel.voyager.core.registry.rememberScreen
+import androidx.constraintlayout.compose.Dimension
+import androidx.constraintlayout.compose.MotionLayout
+import androidx.constraintlayout.compose.MotionScene
+import androidx.constraintlayout.compose.OnSwipe
+import androidx.constraintlayout.compose.SwipeDirection
+import androidx.constraintlayout.compose.SwipeSide
+import blue
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import green
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
@@ -79,31 +91,25 @@ import screens.create.TaskSheet
 import utils.AppIconButton
 import utils.increaseContrast
 import utils.toHourMinuteString
-import kotlin.time.Duration.Companion.days
 
 object ScheduleTab : Tab {
     @Composable
     override fun Content() {
         Calender(
-            provider = ScheduleProvider(
-                eventsForRange = { range ->
-                    TaskViewModel.allTasks()
-                }
-            ),
+            provider = ScheduleProvider(eventsForRange = { range ->
+                TaskViewModel.allTasks()
+            }),
         )
     }
 
     override val options: TabOptions
-        @Composable
-        get() {
+        @Composable get() {
             val title = "Schedulable"
             val icon = rememberVectorPainter(Icons.Default.DateRange)
 
             return remember {
                 TabOptions(
-                    index = 1u,
-                    title = title,
-                    icon = icon
+                    index = 1u, title = title, icon = icon
                 )
             }
         }
@@ -126,8 +132,7 @@ class ScheduleProvider(
     val events = mutableStateOf<Map<LocalDate, List<Schedulable>>>(emptyMap())
 
     suspend fun refresh(dateRange: DateRange) = withContext(Dispatchers.IO) {
-        events.value = eventsForRange(dateRange)
-            .filterNot { it.time == null }
+        events.value = eventsForRange(dateRange).filterNot { it.time == null }
             .groupBy { it.time!!.toLocalDateTime(TimeZone.currentSystemDefault()).date }
     }
 }
@@ -140,7 +145,7 @@ fun LocalDate.startOfWeek(): LocalDate {
     return start
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun Calender(
     modifier: Modifier = Modifier,
@@ -153,47 +158,125 @@ fun Calender(
     val startingWeekPage = 1000
     val startingDayPage = 4000
 
-    val weekPagerState = rememberPagerState(
-        initialPage = startingWeekPage,
+    val weekPagerState = rememberPagerState(initialPage = startingWeekPage,
         initialPageOffsetFraction = 0f,
-        pageCount = { startingWeekPage * 2 }
-    )
-    val dayPagerState = rememberPagerState(
-        initialPage = startingDayPage,
+        pageCount = { startingWeekPage * 2 })
+    val dayPagerState = rememberPagerState(initialPage = startingDayPage,
         initialPageOffsetFraction = 0f,
-        pageCount = { startingDayPage * 2 }
-    )
+        pageCount = { startingDayPage * 2 })
 
     LaunchedEffect(dayPagerState.currentPage) {
         selectedDate = now.plus(dayPagerState.currentPage - startingDayPage, DateTimeUnit.DAY)
     }
 
-    Column(modifier.fillMaxSize()) {
-        Column(
-            modifier = modifier.border(
-                2.dp,
-                MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(16.dp)
-            ).padding(bottom = 16.dp)
-        ) {
-            Header(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
-                    .padding(top = 8.dp),
-                startDay = now.minus(
-                    startingWeekPage - weekPagerState.currentPage,
-                    DateTimeUnit.WEEK
+    MotionLayout(
+        motionScene = MotionScene {
+            val headerBackground = createRefFor("headerBackground")
+            val header = createRefFor("header")
+            val month = createRefFor("month")
+            val week = createRefFor("week")
+            val dragBar = createRefFor("dragBar")
+            val day = createRefFor("day")
+
+            defaultTransition(from = constraintSet {
+                constrain(headerBackground) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(dragBar.bottom)
+                    height = Dimension.fillToConstraints
+                }
+                constrain(header) {
+                    top.linkTo(parent.top)
+                }
+                constrain(week) {
+                    top.linkTo(header.bottom)
+                    height = Dimension.wrapContent
+                    alpha = 1f
+                }
+                constrain(month) {
+                    top.linkTo(header.bottom)
+                    height = Dimension.value(0.dp)
+                    alpha = 0f
+                }
+                constrain(dragBar) {
+                    top.linkTo(week.bottom)
+                    centerHorizontallyTo(parent)
+                }
+                constrain(day) {
+                    top.linkTo(headerBackground.bottom)
+                }
+            }, to = constraintSet {
+                constrain(headerBackground) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(dragBar.bottom)
+                    height = Dimension.fillToConstraints
+                }
+                constrain(header) {
+                    top.linkTo(parent.top)
+                }
+                constrain(week) {
+                    top.linkTo(header.bottom)
+                    alpha = 0f
+                }
+                constrain(month) {
+                    top.linkTo(header.bottom)
+                    height = Dimension.wrapContent
+                    alpha = 1f
+                }
+                constrain(dragBar) {
+                    top.linkTo(month.bottom)
+                    centerHorizontallyTo(parent)
+                }
+                constrain(day) {
+                    top.linkTo(headerBackground.bottom)
+                }
+            }) {
+                onSwipe = OnSwipe(
+                    anchor = day,
+                    side = SwipeSide.Top,
+                    direction = SwipeDirection.Down,
+                    dragScale = .5f,
                 )
-                    .startOfWeek()
+            }
+        },
+        progress = 0f, // OnSwipe handles the progress, so this should be constant to avoid conflict
+        modifier = Modifier.fillMaxSize()
+    ) {
+
+        // header background
+        val background = MaterialTheme.colorScheme.background
+        val intermediate = MaterialTheme.colorScheme.primaryContainer.increaseContrast()
+        val primary = MaterialTheme.colorScheme.primaryContainer
+        Box(modifier.layoutId("headerBackground").fillMaxWidth().height(0.dp).drawBehind {
+            this.drawRoundRect(
+                Brush.linearGradient(
+                    0.0f to background,
+                    0.8f to intermediate,
+                    1.0f to primary,
+                    start = Offset(0.0f, 0.0f),
+                    end = Offset(0.0f, size.height),
+                ), cornerRadius = CornerRadius(64f)
             )
+        })
+
+        // Header
+        Header(
+            modifier = Modifier.layoutId("header").fillMaxWidth().padding(horizontal = 8.dp)
+                .padding(top = 8.dp), startDay = now.minus(
+                startingWeekPage - weekPagerState.currentPage, DateTimeUnit.WEEK
+            ).startOfWeek()
+        )
+
+        // Month content
+        Box(modifier.layoutId("month").fillMaxWidth().height(300.dp)) {}
+
+        // Week content
+        Box(modifier.layoutId("week")) {
             HorizontalPager(
-                modifier = modifier.fillMaxWidth(),
+                modifier = modifier.fillMaxWidth().padding(horizontal = 4.dp),
                 state = weekPagerState,
                 verticalAlignment = Alignment.Top
             ) { page ->
                 startOfWeek = now.minus(startingWeekPage - page, DateTimeUnit.WEEK).startOfWeek()
-
                 Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
                     var day = startOfWeek
                     repeat((1..7).count()) {
@@ -214,18 +297,32 @@ fun Calender(
             }
         }
 
-        var columnSize by remember { mutableStateOf(Size.Zero) }
+        // Drag bar
+        Box(
+            modifier = Modifier.layoutId("dragBar").padding(vertical = 12.dp).size(32.dp, 4.dp)
+                .background(
+                    MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp)
+                )
+        )
 
-        HorizontalPager(
-            modifier = modifier.padding(top = 8.dp).fillMaxSize()
-                .onGloballyPositioned { layoutCoordinates ->
-                    columnSize = layoutCoordinates.size.toSize()
-                },
-            state = dayPagerState,
-            verticalAlignment = Alignment.Top
-        ) { page ->
-            val date = now.plus(startingDayPage - page, DateTimeUnit.DAY)
-            DayColumn(provider.events.value[date] ?: emptyList(), columnSize)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .nestedScroll(TopAppBarDefaults.enterAlwaysScrollBehavior().nestedScrollConnection)
+                .layoutId("day")
+        ) {
+            repeat(20) {
+                Box(modifier = Modifier.height(200.dp).fillMaxWidth().padding(20.dp).background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp)))
+            }
+//            HorizontalPager(
+//                modifier = modifier.padding(top = 8.dp).fillMaxWidth(),
+//                state = dayPagerState,
+//                verticalAlignment = Alignment.Top
+//            ) { page ->
+//                val date = now.plus(startingDayPage - page, DateTimeUnit.DAY)
+//                DayColumn(provider.events.value[date] ?: emptyList())
+//            }
         }
     }
 }
@@ -239,27 +336,21 @@ fun RowScope.CalendarItem(
     events: List<Schedulable>,
     onSelected: (LocalDate) -> Unit
 ) {
-    val backgroundedModifier = if (selected) {
+    var backgroundedModifier = if (selected) {
         modifier.background(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = RoundedCornerShape(16.dp)
+            color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(16.dp)
         )
-    } else if (isToday) {
-        modifier.border(
+    } else modifier
+    backgroundedModifier = if (isToday) {
+        backgroundedModifier.border(
             width = 2.dp,
-            color = MaterialTheme.colorScheme.primaryContainer,
+            color = MaterialTheme.colorScheme.primary,
             shape = RoundedCornerShape(16.dp)
         )
-    } else {
-        modifier
-    }
+    } else backgroundedModifier
 
-    Column(
-        backgroundedModifier
-            .weight(1f)
-            .clip(RoundedCornerShape(16.dp))
-            .padding(2.dp)
-            .clickable { onSelected(day) }) {
+    Column(backgroundedModifier.weight(1f).clip(RoundedCornerShape(16.dp)).padding(2.dp)
+        .clickable { onSelected(day) }) {
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = day.dayOfMonth.toString(),
@@ -278,19 +369,15 @@ fun RowScope.CalendarItem(
 }
 
 @Composable
-fun DayColumn(events: List<Schedulable>, columnSize: Size) {
+fun DayColumn(events: List<Schedulable>) {
     val containerColor = MaterialTheme.colorScheme.primary
     val fontResolver = LocalFontFamilyResolver.current
 
-    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-        Box(
-            modifier = Modifier.fillMaxWidth()
-                .height(LocalDensity.current.run { (2.5f * columnSize.height).toDp() })
-                .drawWithContent {
-                    gridLines(fontResolver, containerColor)
-                }
-        )
-    }
+    Box(modifier = Modifier.fillMaxWidth()
+        .height(1000.dp)
+        .drawWithContent {
+            gridLines(fontResolver, containerColor)
+        })
 }
 
 fun ContentDrawScope.gridLines(fontResolver: FontFamily.Resolver, primaryColor: Color) {
@@ -325,8 +412,7 @@ fun Header(modifier: Modifier = Modifier, startDay: LocalDate) {
     val bottomSheetNavigator = LocalBottomSheetNavigator.current
     Box(modifier = modifier) {
         Text(
-            modifier = Modifier
-                .align(Alignment.Center),
+            modifier = Modifier.align(Alignment.Center),
             text = startDay.month.name.lowercase().capitalize(Locale.current),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.titleLarge

@@ -52,6 +52,7 @@ kotlin {
                 implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
 
+                implementation("tech.annexflow.compose:constraintlayout-compose-multiplatform:0.3.0-alpha01")
 
                 // lottie
                 implementation("io.github.ismai117:kottie:1.3.1")
