@@ -10,8 +10,7 @@ import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import randomUUID
-import screens.home.Schedulable
-import services.UserService
+import screens.schedule.Schedulable
 
 enum class RepeatInterval {
     NONE, DAILY, WEEKLY, MONTHLY
