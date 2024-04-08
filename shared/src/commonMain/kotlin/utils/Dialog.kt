@@ -16,6 +16,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import utils.DialogState.NotShowing
 
 data class DialogData(
     val content: (@Composable () -> Unit)? = null,
@@ -27,7 +28,7 @@ sealed class DialogState {
 }
 
 object DialogCoordinator {
-    var state = mutableStateOf<DialogState>(DialogState.NotShowing)
+    var state = mutableStateOf<DialogState>(NotShowing)
 
     fun show(dialog: DialogData) {
         if (state.value is DialogState.Showing) return
@@ -35,7 +36,7 @@ object DialogCoordinator {
     }
 
     fun close() {
-        state.value = DialogState.NotShowing
+        state.value = NotShowing
     }
 }
 

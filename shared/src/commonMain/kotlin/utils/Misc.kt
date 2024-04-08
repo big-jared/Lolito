@@ -206,7 +206,7 @@ fun CircularProgress(modifier: Modifier = Modifier, progress: Float, activeColor
 
 @Composable
 fun AppIconButton(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
     painter: Painter = rememberVectorPainter(Icons.Rounded.Add),
     containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,

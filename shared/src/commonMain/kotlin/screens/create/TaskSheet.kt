@@ -6,6 +6,7 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -209,7 +209,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
             TaskTypeRow(horizontalPadding)
             HorizontalDivider(modifier = horizontalPadding.padding(top = 8.dp))
             DueDateRow(modifier = horizontalPadding)
-            DurationRow(modifier = horizontalPadding)
+
             HorizontalDivider(modifier = horizontalPadding.padding(top = 8.dp))
             AssigneeRow(modifier = horizontalPadding)
             AdvancedRow(modifier = horizontalPadding)
@@ -366,7 +366,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
     @Composable
-    fun DueDateRow(modifier: Modifier) {
+    fun DateSelectionRow(modifier: Modifier = Modifier) {
         Row(modifier = modifier.padding(top = 16.dp)) {
             Text(
                 modifier = Modifier.align(Alignment.CenterVertically).weight(1f)
@@ -453,6 +453,138 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                         }
                     })
                 })
+        }
+    }
+
+    @OptIn(ExperimentalResourceApi::class)
+    @Composable
+    fun ColumnScope.DurationSelectionRow(modifier: Modifier = Modifier) {
+        AnimatedVisibility(model.dueDate.value != null) {
+            Row(
+                modifier = modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                HighlightBox(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    text = if (model.duration.value == null) "Select Duration" else model.duration.value.toString(),
+                    color = MaterialTheme.colorScheme.primary,
+                    backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                    frontIcon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.timelapse),
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    onClick = {
+                        DialogCoordinator.show(DialogData {
+                            val duration = model.duration.value
+                            var hours by remember {
+                                mutableStateOf(
+                                    duration?.inWholeHours?.toInt() ?: 0
+                                )
+                            }
+                            var minutes by remember {
+                                mutableStateOf(
+                                    duration?.minus(duration.inWholeHours.hours)?.inWholeMinutes?.toInt()
+                                        ?: 0
+                                )
+                            }
+
+                            DialogColumn {
+                                val focusRequester = remember { FocusRequester() }
+                                LaunchedEffect(Unit) {
+                                    focusRequester.requestFocus()
+                                }
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                        .focusRequester(focusRequester)
+                                ) {
+                                    CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.displayLarge) {
+                                        TextField(
+                                            modifier = Modifier.weight(.5f).padding(end = 8.dp),
+                                            value = "$hours",
+                                            keyboardOptions = KeyboardOptions.Default.copy(
+                                                keyboardType = KeyboardType.Number
+                                            ),
+                                            suffix = { Text("hr") },
+                                            onValueChange = {
+                                                val newHours = if (hours == 0) {
+                                                    it.removeSuffix("0")
+                                                } else it
+                                                hours = (newHours.toIntOrNull() ?: 0)
+                                            },
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = TextFieldDefaults.colors(
+                                                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                focusedIndicatorColor = Color.Transparent
+                                            )
+                                        )
+                                        TextField(
+                                            modifier = Modifier.weight(.5f).padding(start = 8.dp),
+                                            value = "$minutes",
+                                            keyboardOptions = KeyboardOptions.Default.copy(
+                                                keyboardType = KeyboardType.Number
+                                            ),
+                                            suffix = { Text("min") },
+                                            onValueChange = {
+                                                val min = if (minutes == 0) {
+                                                    it.removeSuffix("0")
+                                                } else it
+                                                val tempMinutes = (min.toIntOrNull() ?: 0)
+                                                if (tempMinutes < 60) {
+                                                    minutes = tempMinutes
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = TextFieldDefaults.colors(
+                                                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                focusedIndicatorColor = Color.Transparent
+                                            )
+                                        )
+                                    }
+                                }
+                                Box(modifier = Modifier.fillMaxWidth()) {
+                                    FilledTonalButton(
+                                        modifier = Modifier.padding(top = 16.dp, start = 16.dp)
+                                            .align(Alignment.Center),
+                                        onClick = {
+                                            model.duration.value = hours.hours + minutes.minutes
+                                            DialogCoordinator.close()
+                                        }) {
+                                        Text("Set Duration")
+                                    }
+                                    if (model.duration.value != null) {
+                                        AppIconButton(modifier = Modifier.align(Alignment.CenterEnd)
+                                            .padding(top = 16.dp, end = 16.dp),
+                                            painter = painterResource(Res.drawable.delete),
+                                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                                            contentColor = MaterialTheme.colorScheme.error,
+                                            onClick = {
+                                                model.duration.value = null
+                                                DialogCoordinator.close()
+                                            })
+                                    }
+                                }
+                            }
+                        })
+                    })
+            }
+        }
+    }
+
+    @Composable
+    fun DueDateRow(modifier: Modifier) {
+        Row(modifier = modifier) {
+            Column(modifier = Modifier.weight(1f)) {
+                DateSelectionRow()
+                DurationSelectionRow()
+            }
+
             AnimatedVisibility(
                 modifier = Modifier.align(Alignment.CenterVertically),
                 visible = model.dueDate.value != null,
@@ -465,104 +597,6 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                         model.dueDate.value = null
                     })
             }
-        }
-    }
-
-    @OptIn(ExperimentalResourceApi::class)
-    @Composable
-    fun DurationRow(modifier: Modifier) {
-        Row(
-            modifier = modifier.fillMaxWidth().padding(top = 8.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-            HighlightBox(
-                modifier = Modifier.align(Alignment.CenterVertically),
-                text = if (model.duration.value == null) "Select Duration" else model.duration.value.toString(),
-                color = MaterialTheme.colorScheme.primary,
-                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                frontIcon = {
-                    Icon(
-                        painter = painterResource(Res.drawable.timelapse),
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                },
-                onClick = {
-                    DialogCoordinator.show(DialogData {
-                        val duration = model.duration.value
-                        var hours by remember {
-                            mutableStateOf(
-                                duration?.inWholeHours?.toInt() ?: 0
-                            )
-                        }
-                        var minutes by remember {
-                            mutableStateOf(
-                                duration?.minus(duration.inWholeHours.hours)?.inWholeMinutes?.toInt()
-                                    ?: 0
-                            )
-                        }
-
-                        DialogColumn {
-                            val focusRequester = remember { FocusRequester() }
-                            LaunchedEffect(Unit) {
-                                focusRequester.requestFocus()
-                            }
-                            Row(modifier = Modifier.padding(horizontal = 16.dp).focusRequester(focusRequester)) {
-                                CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.displayLarge) {
-                                    TextField(
-                                        modifier = Modifier.weight(.5f).padding(end = 8.dp),
-                                        value = "$hours",
-                                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                                        suffix = { Text("hr") },
-                                        onValueChange = {
-                                            val newHours = if (hours == 0) {
-                                                it.removeSuffix("0")
-                                            } else it
-                                            hours = (newHours.toIntOrNull() ?: 0)
-                                        },
-                                        shape = RoundedCornerShape(16.dp),
-                                        colors = TextFieldDefaults.colors(
-                                            focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                            unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                            unfocusedIndicatorColor = Color.Transparent,
-                                            focusedIndicatorColor = Color.Transparent
-                                        )
-                                    )
-                                    TextField(
-                                        modifier = Modifier.weight(.5f).padding(start = 8.dp),
-                                        value = "$minutes",
-                                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                                        suffix = { Text("min") },
-                                        onValueChange = {
-                                            val min = if (minutes == 0) {
-                                                it.removeSuffix("0")
-                                            } else it
-                                            val tempMinutes = (min.toIntOrNull() ?: 0)
-                                            if (tempMinutes < 60) {
-                                                minutes = tempMinutes
-                                            }
-                                        },
-                                        shape = RoundedCornerShape(16.dp),
-                                        colors = TextFieldDefaults.colors(
-                                            focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                            unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                            unfocusedIndicatorColor = Color.Transparent,
-                                            focusedIndicatorColor = Color.Transparent
-                                        )
-                                    )
-                                }
-                            }
-                            FilledTonalButton(
-                                modifier = Modifier.padding(top = 16.dp, start = 16.dp).align(Alignment.CenterHorizontally),
-                                onClick = {
-                                    model.duration.value = hours.hours + minutes.minutes
-                                    DialogCoordinator.close()
-                                }) {
-                                Text("Set Duration")
-                            }
-                        }
-                    })
-                })
         }
     }
 
@@ -579,6 +613,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
         }
     }
 
+    @OptIn(ExperimentalStdlibApi::class, ExperimentalLayoutApi::class)
     @Composable
     fun ColumnScope.AdvancedRow(modifier: Modifier) {
         var usingAdvanced by remember { mutableStateOf(false) }
@@ -607,6 +642,22 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
 
         AnimatedVisibility(usingAdvanced) {
             Column {
+                Text(modifier = modifier.padding(top = 16.dp), text = "Tone")
+                Row(modifier = modifier.fillMaxWidth()) {
+                    FlowRow(modifier = Modifier.weight(1f)) {
+                        AlertTone.values().forEach { tone ->
+                            HighlightBox(
+                                modifier = Modifier.padding(top = 4.dp, end = 4.dp),
+                                text = tone.name
+                            )
+                        }
+                    }
+                    AppIconButton(
+                        modifier = Modifier.padding(top = 4.dp, end = 4.dp),
+                        onClick = {
+                            // add tone
+                        })
+                }
                 Text(modifier = modifier.padding(top = 16.dp), text = "Notes")
                 OutlinedTextField(modifier = modifier.fillMaxWidth().padding(top = 8.dp)
                     .defaultMinSize(minHeight = 120.dp),
@@ -614,7 +665,13 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                     value = model.notes.value,
                     onValueChange = { model.notes.value = it },
                     placeholder = { Text("Add a description here") })
+                Text(modifier = modifier.padding(top = 16.dp), text = "Notes")
+
             }
         }
     }
+}
+
+enum class AlertTone {
+    Casual, Rude, Foul, Gentle, Formal
 }
