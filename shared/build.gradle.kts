@@ -37,7 +37,7 @@ kotlin {
                 implementation("com.darkrockstudios:mpfilepicker:3.1.0")
                 implementation("com.eygraber:compose-color-picker:0.0.17")
 
-                val firebaseVersion = "1.11.1"
+                val firebaseVersion = "1.12.0"
 
                 // firebase
                 implementation("dev.gitlive:firebase-auth:$firebaseVersion")
@@ -45,14 +45,14 @@ kotlin {
                 implementation("dev.gitlive:firebase-storage:$firebaseVersion")
                 implementation("dev.gitlive:firebase-common:$firebaseVersion")
 
-                val voyagerVersion = "1.1.0-alpha02"
+                val voyagerVersion = "1.1.0-alpha03"
                 implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-bottom-sheet-navigator:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
                 implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
 
-                implementation("tech.annexflow.compose:constraintlayout-compose-multiplatform:0.3.0-alpha01")
+                implementation("tech.annexflow.compose:constraintlayout-compose-multiplatform:0.3.1")
 
                 // lottie
                 implementation("io.github.ismai117:kottie:1.3.1")

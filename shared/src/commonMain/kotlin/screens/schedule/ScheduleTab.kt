@@ -73,6 +73,7 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.zIndex
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.MotionLayout
 import androidx.constraintlayout.compose.MotionScene
@@ -94,14 +95,17 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import screens.create.TaskSheet
 import screens.home.TaskViewModel
 import utils.AppIconButton
 import utils.increaseContrast
 import utils.toHourMinuteString
+import kotlin.math.roundToInt
 
 object ScheduleTab : Tab {
     @Composable
@@ -185,6 +189,15 @@ fun Calender(
     val dayPagerState = rememberPagerState(initialPage = startingDayPage,
         initialPageOffsetFraction = 0f,
         pageCount = { startingDayPage * 2 })
+    val monthState = rememberDatePickerState()
+
+
+    LaunchedEffect(selectedDate) {
+        monthState.selectedDateMillis = selectedDate.atTime(0, 0).toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
+        val anchorDate = if (selectedDate < now.startOfWeek()) selectedDate.minus(6, DateTimeUnit.DAY) else selectedDate
+        weekPagerState.scrollToPage(startingWeekPage - (now.startOfWeek() - anchorDate).days / 7)
+        dayPagerState.scrollToPage(startingDayPage - (now - selectedDate).days)
+    }
 
     LaunchedEffect(dayPagerState.currentPage) {
         selectedDate = now.plus(dayPagerState.currentPage - startingDayPage, DateTimeUnit.DAY)
@@ -328,6 +341,7 @@ fun Calender(
                     // Header
                     Header(
                         modifier = Modifier.layoutId("header").fillMaxWidth()
+                            .zIndex(4f)
                             .padding(horizontal = 8.dp)
                             .padding(top = 8.dp), startDay = now.minus(
                             startingWeekPage - weekPagerState.currentPage, DateTimeUnit.WEEK
@@ -335,8 +349,8 @@ fun Calender(
                     )
 
                     // Month content
-                    Box(modifier.layoutId("month").fillMaxWidth()) {
-                        DatePicker(modifier = Modifier.fillMaxWidth(), state = rememberDatePickerState(), title = null, headline = null, showModeToggle = false)
+                    Box(modifier.layoutId("month").fillMaxWidth().zIndex(4f)) {
+                        DatePicker(modifier = Modifier.fillMaxWidth(), state = monthState, title = null, headline = null, showModeToggle = false)
                     }
 
                     // Week content
@@ -359,7 +373,6 @@ fun Calender(
                                     ) {
                                         coScope.launch {
                                             selectedDate = it
-                                            dayPagerState.scrollToPage(startingDayPage - (now - selectedDate).days)
                                         }
                                     }
                                     day = day.plus(1, DateTimeUnit.DAY)
@@ -384,9 +397,6 @@ fun Calender(
                             .nestedScroll(TopAppBarDefaults.enterAlwaysScrollBehavior().nestedScrollConnection)
                             .layoutId("day")
                     ) {
-                        //            repeat(20) {
-                        //                Box(modifier = Modifier.height(200.dp).fillMaxWidth().padding(20.dp).background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp)))
-                        //            }
                         HorizontalPager(
                             modifier = modifier.padding(top = 8.dp).fillMaxWidth(),
                             state = dayPagerState,
