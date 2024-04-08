@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -30,14 +32,19 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,9 +54,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
@@ -60,7 +71,6 @@ import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
@@ -71,6 +81,7 @@ import models.User
 import myapplication.shared.generated.resources.Res
 import myapplication.shared.generated.resources.delete
 import myapplication.shared.generated.resources.schedule
+import myapplication.shared.generated.resources.timelapse
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import randomUUID
@@ -78,12 +89,16 @@ import screens.home.TaskViewModel
 import services.UserService.currentUser
 import utils.AppIconButton
 import utils.ColorHintCircle
+import utils.DialogColumn
 import utils.DialogCoordinator
 import utils.DialogData
 import utils.HighlightBox
 import utils.ProfileIcon
 import utils.showSimpleDialog
 import utils.toHourMinuteString
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 data class TaskScreenModel(
     val existingTask: Task? = null,
@@ -92,7 +107,8 @@ data class TaskScreenModel(
     val dueDate: MutableState<Instant?> = mutableStateOf(null),
     val assignedTo: MutableState<List<User>> = mutableStateOf(mutableListOf(currentUser!!)),
     val notes: MutableState<String> = mutableStateOf(""),
-    val dialogText: MutableState<String> = mutableStateOf("")
+    val dialogText: MutableState<String> = mutableStateOf(""),
+    val duration: MutableState<Duration?> = mutableStateOf(null),
 ) {
     val existing: Boolean get() = existingTask != null
 
@@ -111,9 +127,8 @@ data class TaskScreenModel(
 
     fun dueTime(): String {
         val selectedDate = (dueDate.value ?: now()).toLocalDateTime(TimeZone.currentSystemDefault())
-       return selectedDate.time.toHourMinuteString()
+        return selectedDate.time.toHourMinuteString()
     }
-
 
 
     fun setTime(minutes: Int, hours: Int) {
@@ -151,12 +166,13 @@ data class TaskScreenModel(
             assignees = assignedTo.value,
             complete = false,
             dueDate = dueDate.value,
-            notes = notes.value
+            notes = notes.value,
+            duration = duration.value
         )
     }
 
     fun addName() {
-        names.value = names.value + listOf(mutableStateOf(""))
+        names.value += listOf(mutableStateOf(""))
     }
 
     fun removeName(index: Int) {
@@ -172,7 +188,8 @@ data class TaskScreenModel(
             taskType = mutableStateOf(type),
             dueDate = mutableStateOf(task.dueDate ?: now()),
             assignedTo = mutableStateOf(task.assignees),
-            notes = mutableStateOf(task.notes ?: "")
+            notes = mutableStateOf(task.notes ?: ""),
+            duration = mutableStateOf(task.duration)
         )
     }
 }
@@ -192,6 +209,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
             TaskTypeRow(horizontalPadding)
             HorizontalDivider(modifier = horizontalPadding.padding(top = 8.dp))
             DueDateRow(modifier = horizontalPadding)
+            DurationRow(modifier = horizontalPadding)
             HorizontalDivider(modifier = horizontalPadding.padding(top = 8.dp))
             AssigneeRow(modifier = horizontalPadding)
             AdvancedRow(modifier = horizontalPadding)
@@ -288,11 +306,14 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                     AppIconButton(
                         modifier = Modifier.align(Alignment.CenterVertically)
                             .padding(top = 8.dp, end = 16.dp),
-                        onClick = { coScope.launch(Dispatchers.IO) {
-                            state.targetState = false
-                            while (!state.isIdle) {}
-                            model.removeName(index)
-                        } },
+                        onClick = {
+                            coScope.launch(Dispatchers.IO) {
+                                state.targetState = false
+                                while (!state.isIdle) {
+                                }
+                                model.removeName(index)
+                            }
+                        },
                         rememberVectorPainter(Icons.Rounded.Close)
                     )
                 }
@@ -444,6 +465,104 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                         model.dueDate.value = null
                     })
             }
+        }
+    }
+
+    @OptIn(ExperimentalResourceApi::class)
+    @Composable
+    fun DurationRow(modifier: Modifier) {
+        Row(
+            modifier = modifier.fillMaxWidth().padding(top = 8.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            HighlightBox(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                text = if (model.duration.value == null) "Select Duration" else model.duration.value.toString(),
+                color = MaterialTheme.colorScheme.primary,
+                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                frontIcon = {
+                    Icon(
+                        painter = painterResource(Res.drawable.timelapse),
+                        contentDescription = "",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
+                onClick = {
+                    DialogCoordinator.show(DialogData {
+                        val duration = model.duration.value
+                        var hours by remember {
+                            mutableStateOf(
+                                duration?.inWholeHours?.toInt() ?: 0
+                            )
+                        }
+                        var minutes by remember {
+                            mutableStateOf(
+                                duration?.minus(duration.inWholeHours.hours)?.inWholeMinutes?.toInt()
+                                    ?: 0
+                            )
+                        }
+
+                        DialogColumn {
+                            val focusRequester = remember { FocusRequester() }
+                            LaunchedEffect(Unit) {
+                                focusRequester.requestFocus()
+                            }
+                            Row(modifier = Modifier.padding(horizontal = 16.dp).focusRequester(focusRequester)) {
+                                CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.displayLarge) {
+                                    TextField(
+                                        modifier = Modifier.weight(.5f).padding(end = 8.dp),
+                                        value = "$hours",
+                                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                                        suffix = { Text("hr") },
+                                        onValueChange = {
+                                            val newHours = if (hours == 0) {
+                                                it.removeSuffix("0")
+                                            } else it
+                                            hours = (newHours.toIntOrNull() ?: 0)
+                                        },
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = TextFieldDefaults.colors(
+                                            focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                            unfocusedIndicatorColor = Color.Transparent,
+                                            focusedIndicatorColor = Color.Transparent
+                                        )
+                                    )
+                                    TextField(
+                                        modifier = Modifier.weight(.5f).padding(start = 8.dp),
+                                        value = "$minutes",
+                                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                                        suffix = { Text("min") },
+                                        onValueChange = {
+                                            val min = if (minutes == 0) {
+                                                it.removeSuffix("0")
+                                            } else it
+                                            val tempMinutes = (min.toIntOrNull() ?: 0)
+                                            if (tempMinutes < 60) {
+                                                minutes = tempMinutes
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = TextFieldDefaults.colors(
+                                            focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                            unfocusedIndicatorColor = Color.Transparent,
+                                            focusedIndicatorColor = Color.Transparent
+                                        )
+                                    )
+                                }
+                            }
+                            FilledTonalButton(
+                                modifier = Modifier.padding(top = 16.dp, start = 16.dp).align(Alignment.CenterHorizontally),
+                                onClick = {
+                                    model.duration.value = hours.hours + minutes.minutes
+                                    DialogCoordinator.close()
+                                }) {
+                                Text("Set Duration")
+                            }
+                        }
+                    })
+                })
         }
     }
 

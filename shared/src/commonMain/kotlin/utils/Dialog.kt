@@ -60,9 +60,7 @@ fun showSimpleDialog(
 
 @Composable
 fun DialogColumn(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.background) {
-        Column(modifier = modifier.background(MaterialTheme.colorScheme.background, RoundedCornerShape(16.dp)).padding(vertical = 16.dp)) {
-            content()
-        }
+    Column(modifier = modifier.background(MaterialTheme.colorScheme.background, RoundedCornerShape(16.dp)).padding(vertical = 16.dp)) {
+        content()
     }
 }
