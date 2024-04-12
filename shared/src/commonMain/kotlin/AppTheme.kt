@@ -3,16 +3,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.PaletteStyle
+import micro.shared.generated.resources.Res
+import micro.shared.generated.resources.firacode_bold
+import micro.shared.generated.resources.firacode_light
+import micro.shared.generated.resources.firacode_medium
+import micro.shared.generated.resources.firacode_regular
+import micro.shared.generated.resources.firacode_retina
 import models.AlertTone
 import models.Tone
-import myapplication.shared.generated.resources.FiraCode_Bold
-import myapplication.shared.generated.resources.FiraCode_Light
-import myapplication.shared.generated.resources.FiraCode_Medium
-import myapplication.shared.generated.resources.FiraCode_Regular
-import myapplication.shared.generated.resources.FiraCode_Retina
-import myapplication.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.Font
 
@@ -45,13 +47,13 @@ var defaultTone = mutableStateOf(Tone(AlertTone.Casual.name))
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
-    val fontFamily = FontFamily(
-        Font(Res.font.FiraCode_Bold),
-        Font(Res.font.FiraCode_Medium),
-        Font(Res.font.FiraCode_Light),
-        Font(Res.font.FiraCode_Regular),
-        Font(Res.font.FiraCode_Retina),
-    )
+//    val fontFamily = FontFamily(
+//        Font(Res.font.firacode_regular, FontWeight.Normal, FontStyle.Normal),
+//        Font(Res.font.firacode_medium, FontWeight.SemiBold, FontStyle.Normal),
+//        Font(Res.font.firacode_light, FontWeight.Light, FontStyle.Normal),
+//        Font(Res.font.firacode_bold, FontWeight.Bold, FontStyle.Normal),
+//        Font(Res.font.firacode_retina, FontWeight.Thin, FontStyle.Normal),
+//    )
 
     val defaultTypography = Typography()
     DynamicMaterialTheme(
@@ -59,27 +61,27 @@ fun AppTheme(content: @Composable () -> Unit) {
         seedColor = color.value,
         style = appStyle.value,
         isExtendedFidelity = false,
-        typography = Typography(
-            displayLarge = defaultTypography.displayLarge.copy(fontFamily = fontFamily),
-            displayMedium = defaultTypography.displayMedium.copy(fontFamily = fontFamily),
-            displaySmall = defaultTypography.displaySmall.copy(fontFamily = fontFamily),
-
-            headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = fontFamily),
-            headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = fontFamily),
-            headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = fontFamily),
-
-            titleLarge = defaultTypography.titleLarge.copy(fontFamily = fontFamily),
-            titleMedium = defaultTypography.titleMedium.copy(fontFamily = fontFamily),
-            titleSmall = defaultTypography.titleSmall.copy(fontFamily = fontFamily),
-
-            bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = fontFamily),
-            bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = fontFamily),
-            bodySmall = defaultTypography.bodySmall.copy(fontFamily = fontFamily),
-
-            labelLarge = defaultTypography.labelLarge.copy(fontFamily = fontFamily),
-            labelMedium = defaultTypography.labelMedium.copy(fontFamily = fontFamily),
-            labelSmall = defaultTypography.labelSmall.copy(fontFamily = fontFamily)
-        ),
+//        typography = Typography(
+//            displayLarge = defaultTypography.displayLarge.copy(fontFamily = fontFamily),
+//            displayMedium = defaultTypography.displayMedium.copy(fontFamily = fontFamily),
+//            displaySmall = defaultTypography.displaySmall.copy(fontFamily = fontFamily),
+//
+//            headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = fontFamily),
+//            headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = fontFamily),
+//            headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = fontFamily),
+//
+//            titleLarge = defaultTypography.titleLarge.copy(fontFamily = fontFamily),
+//            titleMedium = defaultTypography.titleMedium.copy(fontFamily = fontFamily),
+//            titleSmall = defaultTypography.titleSmall.copy(fontFamily = fontFamily),
+//
+//            bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = fontFamily),
+//            bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = fontFamily),
+//            bodySmall = defaultTypography.bodySmall.copy(fontFamily = fontFamily),
+//
+//            labelLarge = defaultTypography.labelLarge.copy(fontFamily = fontFamily),
+//            labelMedium = defaultTypography.labelMedium.copy(fontFamily = fontFamily),
+//            labelSmall = defaultTypography.labelSmall.copy(fontFamily = fontFamily)
+//        ),
         content = content
     )
 }

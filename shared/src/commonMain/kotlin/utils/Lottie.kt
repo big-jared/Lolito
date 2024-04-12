@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import animateKottieCompositionAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import myapplication.shared.generated.resources.Res
+import micro.shared.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import rememberKottieComposition
 

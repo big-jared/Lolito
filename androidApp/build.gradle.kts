@@ -1,8 +1,12 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
-    kotlin("multiplatform")
-    id("com.android.application")
-    id("org.jetbrains.compose")
-    id("com.google.gms.google-services")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 kotlin {
@@ -10,15 +14,10 @@ kotlin {
     sourceSets {
         val androidMain by getting {
             dependencies {
-                implementation(project.dependencies.platform("com.google.firebase:firebase-bom:30.0.1"))
                 implementation(project(":shared"))
             }
         }
     }
-}
-
-dependencies {
-    implementation("com.google.firebase:firebase-common-ktx:20.4.2")
 }
 
 android {
@@ -40,5 +39,9 @@ android {
     }
     kotlin {
         jvmToolchain(17)
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }

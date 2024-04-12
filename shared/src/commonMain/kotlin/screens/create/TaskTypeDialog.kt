@@ -49,9 +49,9 @@ import lightOrange
 import lightPurple
 import lightRed
 import lightYellow
+import micro.shared.generated.resources.Res
+import micro.shared.generated.resources.delete
 import models.TaskType
-import myapplication.shared.generated.resources.Res
-import myapplication.shared.generated.resources.delete
 import navy
 import orange
 import org.jetbrains.compose.resources.ExperimentalResourceApi

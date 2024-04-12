@@ -41,10 +41,10 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import micro.shared.generated.resources.Res
+import micro.shared.generated.resources.filter
 import models.Task
 import models.TaskType
-import myapplication.shared.generated.resources.Res
-import myapplication.shared.generated.resources.filter
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import screens.create.TaskScreenModel

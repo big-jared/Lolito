@@ -1,0 +1,121 @@
+[versions]
+compose = "1.6.2"
+kotlin = "1.9.23"
+androidGradlePlugin = "8.1.3"
+androidxAvtivityCpmpose = "1.7.2"
+androidxLifecycleRuntimeCpmpose = "2.6.2"
+androidxAppCompat = "1.6.1"
+androidxCore = "1.10.1"
+koin = "3.5.0"
+koinCompose = "1.1.0"
+multiplatformSettings = "1.0.0"
+voyager = "1.1.0-alpha04"
+kotlinxSerialization = "1.6.2"
+kotlinxDateTime = "0.5.0"
+ktor = "2.3.5"
+logback = "1.2.11"
+napier = "2.6.1"
+firebaseBom="32.4.1"
+firebaseKtx="1.12.0"
+googleServices="4.4.0"
+firebaseCrashlytics = "2.9.9"
+kmpNotifier = "0.5.0"
+kmpAuth = "1.1.0"
+coil = "3.0.0-alpha03"
+kmpRevenueCat="0.0.6"
+kottie = "1.3.1"
+
+[libraries]
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxAvtivityCpmpose" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppCompat" }
+androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidxLifecycleRuntimeCpmpose" }
+
+#Koin - Dependency Injection
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = "koinCompose" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+
+#Ktor - Networking Library
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
+ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+
+#Preference Library
+multiplatformSettings-noargs = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettings" }
+
+#Navigation Library
+voyager-navigator = { group = "cafe.adriel.voyager", name = "voyager-navigator", version.ref = "voyager" }
+voyager-tabNavigator = { group = "cafe.adriel.voyager", name = "voyager-tab-navigator", version.ref = "voyager" }
+voyager-transitions = { group = "cafe.adriel.voyager", name = "voyager-transitions", version.ref = "voyager" }
+voyager-bottomsheet = { group = "cafe.adriel.voyager", name = "voyager-bottom-sheet-navigator", version.ref = "voyager" }
+
+#Kotlinx Serialization
+kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+
+#Kotlinx DateTime
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDateTime" }
+
+#Napier - Logging library
+napier = { module = "io.github.aakira:napier", version.ref = "napier" }
+
+#Firebase
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging-ktx" }
+
+#Firebase-kotlin
+firebase-auth-kt = { group = "dev.gitlive", name = "firebase-auth", version.ref = "firebaseKtx"}
+firebase-firestore-kt = { group = "dev.gitlive", name = "firebase-firestore", version.ref = "firebaseKtx"}
+firebase-storage-kt = { group = "dev.gitlive", name = "firebase-storage", version.ref = "firebaseKtx"}
+firebase-common-kt = { group = "dev.gitlive", name = "firebase-common", version.ref = "firebaseKtx"}
+
+#Lottie
+lottie = { group = "io.github.ismai117", name = "kottie", version.ref = "kottie" }
+
+#Push Notification
+kmpNotifier = { group = "io.github.mirzemehdi", name = "kmpnotifier", version.ref = "kmpNotifier" }
+
+#Authentication Library
+kmpAuth-firebase = { group = "io.github.mirzemehdi", name = "kmpauth-firebase", version.ref = "kmpAuth" }
+kmpAuth-google = { group = "io.github.mirzemehdi", name = "kmpauth-google", version.ref = "kmpAuth" }
+kmpAuth-uihelper = { group = "io.github.mirzemehdi", name = "kmpauth-uihelper", version.ref = "kmpAuth" }
+
+# Coil Image Loading
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor", version.ref = "coil" }
+
+# KMPRevenuecat - Subscription lib
+kmprevenuecat-purchases = { group = "io.github.mirzemehdi", name = "kmprevenuecat-purchases", version.ref = "kmpRevenueCat" }
+kmprevenuecat-purchases-ui = { group = "io.github.mirzemehdi", name = "kmprevenuecat-purchases-ui", version.ref = "kmpRevenueCat" }
+
+#Misc
+file-picker = { group = "com.darkrockstudios", name = "mpfilepicker", version = "3.1.0" }
+color-picker = { group = "com.eygraber", name = "compose-color-picker", version = "0.0.17" }
+material-kolor = { group = "com.materialkolor", name = "material-kolor", version = "1.4.4" }
+flow-layout = { group = "com.google.accompanist", name = "accompanist-flowlayout", version = "0.19.0" }
+contstraint-layout = { group = "ech.annexflow.compose", name = "constraintlayout-compose-multiplatform", version = "0.3.1" }
+kamel-image = { group = "media.kamel", name = "kamel-image", version = "0.9.1" }
+
+[bundles]
+voyager = ["voyager-navigator", "voyager-tabNavigator", "voyager-transitions", "voyager-bottomsheet"]
+koin = ["koin-core", "koin-compose"]
+ktor = ["ktor-client-core", "ktor-client-cio", "ktor-client-logging", "ktor-client-content-negotiation", "ktor-serialization-kotlinx-json"]
+firebase-kt = ["firebase-auth-kt", "firebase-firestore-kt", "firebase-storage-kt", "firebase-common-kt"]
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlytics" }
+kotlinNativeCocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -139,7 +140,7 @@ class Landing : Screen {
             )
             Icon(
                 modifier = Modifier.size(32.dp).align(Alignment.Center),
-                painter = rememberVectorPainter(Icons.Rounded.ArrowForward),
+                painter = rememberVectorPainter(Icons.AutoMirrored.Rounded.ArrowForward),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primaryContainer
             )

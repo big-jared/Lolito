@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Close
@@ -76,17 +77,17 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import lightGrey
+import micro.shared.generated.resources.Res
+import micro.shared.generated.resources.delete
+import micro.shared.generated.resources.repeat
+import micro.shared.generated.resources.schedule
+import micro.shared.generated.resources.timelapse
 import models.AlertTone
 import models.RepeatInterval
 import models.Task
 import models.TaskType
 import models.Tone
 import models.User
-import myapplication.shared.generated.resources.Res
-import myapplication.shared.generated.resources.delete
-import myapplication.shared.generated.resources.repeat
-import myapplication.shared.generated.resources.schedule
-import myapplication.shared.generated.resources.timelapse
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import randomUUID
@@ -684,7 +685,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                 Icon(
                     modifier = Modifier.rotate(animateFloatAsState(if (usingAdvanced) 270f else 90f).value),
                     painter = rememberVectorPainter(
-                        Icons.Default.KeyboardArrowRight
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight
                     ),
                     contentDescription = "",
                     tint = MaterialTheme.colorScheme.primary,
