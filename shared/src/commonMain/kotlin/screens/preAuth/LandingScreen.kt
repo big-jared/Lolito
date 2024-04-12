@@ -40,7 +40,10 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.materialkolor.ktx.lighten
+import com.mmk.kmpnotifier.notification.NotifierManager
 import darkGrey
+import io.github.aakira.napier.Napier
+import io.github.aakira.napier.log
 import kotlinx.coroutines.launch
 
 val EaseOutBounce: Easing = Easing { fraction ->

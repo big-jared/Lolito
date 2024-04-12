@@ -1,11 +1,8 @@
 package screens.create
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,15 +14,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -66,8 +58,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import purple
 import red
-import screens.home.TaskViewModel
-import services.TaskService
+import screens.home.TaskRepository
 import utils.AppIconButton
 import utils.ColorHintCircle
 import utils.DialogColumn
@@ -103,7 +94,7 @@ fun TaskTypeDialogContent(type: TaskType?, onSave: (TaskType) -> Unit) {
                     modifier = Modifier.align(Alignment.CenterVertically),
                     onClick = {
                         coScope.launch(Dispatchers.IO) {
-                            TaskViewModel.delete(type)
+                            TaskRepository.delete(type)
                             DialogCoordinator.close()
                         }
                     },
@@ -167,7 +158,7 @@ fun TaskTypeDialogContent(type: TaskType?, onSave: (TaskType) -> Unit) {
                         name = title,
                         color = selectedColor
                     )
-                    TaskViewModel.putType(taskType)
+                    TaskRepository.putType(taskType)
                     DialogCoordinator.close()
                     onSave(taskType)
                 }

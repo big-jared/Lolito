@@ -10,7 +10,7 @@ kotlin {
     sourceSets {
         val androidMain by getting {
             dependencies {
-                implementation(platform("com.google.firebase:firebase-bom:30.0.1"))
+                implementation(project.dependencies.platform("com.google.firebase:firebase-bom:30.0.1"))
                 implementation(project(":shared"))
             }
         }

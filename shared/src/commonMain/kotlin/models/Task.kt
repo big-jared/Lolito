@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import blue
 import com.materialkolor.ktx.harmonizeWithPrimary
+import defaultTone
 import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
@@ -13,8 +14,8 @@ import randomUUID
 import screens.schedule.Schedulable
 import kotlin.time.Duration
 
-enum class RepeatInterval {
-    NONE, DAILY, WEEKLY, MONTHLY
+enum class RepeatInterval(val title: String) {
+    NONE("None"), DAILY("Daily"), WEEKLY("Weekly"), MONTHLY("Monthly")
 }
 
 @Serializable
@@ -29,6 +30,7 @@ data class Task(
     val repeatInterval: RepeatInterval = RepeatInterval.NONE,
     val notes: String? = null,
     val duration: Duration? = null,
+    val tone: Tone = defaultTone.value
 ) : Schedulable {
     override val time: Instant? = dueDate
 }
@@ -47,7 +49,13 @@ data class TaskType(
     fun derivedColor(): Color = MaterialTheme.colorScheme.harmonizeWithPrimary(Color(color))
 }
 
-val defaultTaskType = TaskType(
-    name = "Tasks",
-    color = blue.toArgb()
+
+enum class AlertTone {
+    Casual, Rude, Foul, Gentle, Formal
+}
+
+@Serializable
+data class Tone (
+    val name: String,
+    val temperature: Int = 30
 )

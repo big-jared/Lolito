@@ -4,11 +4,13 @@ import androidx.compose.ui.graphics.Color
 import appStyle
 import color
 import com.materialkolor.PaletteStyle
+import defaultTone
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import models.AlertTone
 import models.User
 import screens.uid
 
@@ -21,6 +23,7 @@ object UserService {
             color.value = Color(it)
         }
         appStyle.value = PaletteStyle.valueOf(currentUser?.style ?: PaletteStyle.FruitSalad.name)
+        defaultTone.value = currentUser?.tone ?: defaultTone.value
         currentUser
     }
 

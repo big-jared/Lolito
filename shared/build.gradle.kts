@@ -30,7 +30,7 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-                implementation("com.materialkolor:material-kolor:1.4.0-rc02")
+                implementation("com.materialkolor:material-kolor:1.4.4")
                 implementation("com.google.accompanist:accompanist-flowlayout:0.19.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
                 implementation("media.kamel:kamel-image:0.9.1")
@@ -56,6 +56,8 @@ kotlin {
 
                 // lottie
                 implementation("io.github.ismai117:kottie:1.3.1")
+
+                api("io.github.mirzemehdi:kmpnotifier:0.5.0")
             }
         }
         val androidMain by getting {

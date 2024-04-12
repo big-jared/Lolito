@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -41,6 +42,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.materialkolor.ktx.darken
 import com.materialkolor.ktx.lighten
@@ -78,6 +80,13 @@ fun Color.decreaseContrast(ratio: Float = 1f): Color {
 }
 
 @Composable
+fun FullScreenProgressIndicator() {
+    Box(Modifier.fillMaxSize()) {
+        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+    }
+}
+
+@Composable
 fun ColorHintCircle(modifier: Modifier = Modifier, color: Color) {
     Box(modifier.background(color = color, shape = CircleShape))
 }
@@ -94,6 +103,7 @@ fun HighlightBox(
     backIcon: (@Composable () -> Unit)? = null,
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
+    textStyle: TextStyle = MaterialTheme.typography.labelMedium,
     text: String?
 ) {
     val mainColor = color ?: MaterialTheme.colorScheme.primary
@@ -117,7 +127,7 @@ fun HighlightBox(
                     .align(Alignment.CenterVertically),
                 text = text,
                 color = mainColor,
-                style = MaterialTheme.typography.labelMedium
+                style = textStyle
             )
         }
         if (backIcon != null) {

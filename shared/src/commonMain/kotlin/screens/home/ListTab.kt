@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -13,22 +12,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,19 +30,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import com.materialkolor.ktx.darken
-import com.materialkolor.ktx.lighten
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
@@ -66,7 +51,7 @@ import screens.create.TaskScreenModel
 import screens.create.TaskSheet
 import services.TaskService
 import utils.AppIconButton
-import utils.FileSelector
+import utils.FullScreenProgressIndicator
 import utils.Lottie
 import utils.decreaseContrast
 import utils.increaseContrast
@@ -78,10 +63,10 @@ object ListTab : Tab {
     @Composable
     override fun Content() {
         LaunchedEffect(null) {
-            TaskViewModel.update()
+            TaskRepository.update()
         }
 
-        TaskViewModel.taskMap.value?.let { taskMap ->
+        TaskRepository.taskMap.value?.let { taskMap ->
             Column(Modifier.fillMaxSize().padding(all = 8.dp)) {
                 Column(
                     modifier = Modifier.weight(1f),
@@ -100,9 +85,7 @@ object ListTab : Tab {
                 }
             }
         } ?: run {
-            Box(Modifier.fillMaxSize()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
+            FullScreenProgressIndicator()
         }
     }
 
@@ -181,7 +164,7 @@ object ListTab : Tab {
                             onClick = {
                                 coScope.launch {
                                     TaskService.setTask(task.copy(complete = !task.complete), type)
-                                    TaskViewModel.update()
+                                    TaskRepository.update()
                                 }
                             },
                             border = if (task.complete) null else BorderStroke(

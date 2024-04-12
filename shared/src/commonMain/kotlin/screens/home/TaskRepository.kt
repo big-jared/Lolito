@@ -12,7 +12,8 @@ import models.TaskType
 import screens.create.TaskScreenModel
 import services.TaskService
 
-object TaskViewModel {
+object TaskRepository {
+
     var taskMap: MutableState<Map<TaskType, List<Task>>?> = mutableStateOf(null)
 
     init {
@@ -29,6 +30,9 @@ object TaskViewModel {
     }
 
     suspend fun putTask(screenTask: TaskScreenModel) = withContext(Dispatchers.IO) {
+        if (screenTask.existingType?.id != screenTask.taskType.value?.id) {
+            delete(screenTask.existingTask!!, screenTask.existingType!!)
+        }
         screenTask.toTasks().forEach {
             TaskService.setTask(it, screenTask.taskType.value ?: return@withContext)
         }

@@ -38,8 +38,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.launch
 import models.Group
-import screens.SplashScreen
-import screens.home.TaskViewModel
+import screens.home.TaskRepository
 import services.GroupService
 
 data class GroupScreenData(
@@ -93,7 +92,7 @@ class GroupScreen : Screen {
                                 onClick = {
                                     coScope.launch {
                                         GroupService.setGroupActive(groupData.activeGroup)
-                                        TaskViewModel.update()
+                                        TaskRepository.update()
                                         navigator.popUntilRoot()
                                     }
                                 }) {

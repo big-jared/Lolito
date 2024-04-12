@@ -5,6 +5,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.PaletteStyle
+import models.AlertTone
+import models.Tone
 import myapplication.shared.generated.resources.FiraCode_Bold
 import myapplication.shared.generated.resources.FiraCode_Light
 import myapplication.shared.generated.resources.FiraCode_Medium
@@ -38,6 +40,7 @@ val darkGrey = Color(0xff646464)
 
 var color = mutableStateOf(navy)
 var appStyle = mutableStateOf(PaletteStyle.FruitSalad)
+var defaultTone = mutableStateOf(Tone(AlertTone.Casual.name))
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable

@@ -1,6 +1,7 @@
 package screens.preAuth
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -48,11 +49,7 @@ class SignInScreen: Screen {
 
         Surface(color = MaterialTheme.colorScheme.background) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                Lottie(
-                    modifier = Modifier.fillMaxWidth().weight(1f).padding(16.dp),
-                    fileName = "flower-animation.json",
-                    iterations = 1
-                )
+                Spacer(modifier = Modifier.weight(1f))
                 Column(
                     modifier = Modifier.fillMaxWidth()
                         .padding(bottom = 24.dp)

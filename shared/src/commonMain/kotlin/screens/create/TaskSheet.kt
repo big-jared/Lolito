@@ -64,6 +64,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
+import defaultTone
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
@@ -75,17 +76,21 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import lightGrey
+import models.AlertTone
+import models.RepeatInterval
 import models.Task
 import models.TaskType
+import models.Tone
 import models.User
 import myapplication.shared.generated.resources.Res
 import myapplication.shared.generated.resources.delete
+import myapplication.shared.generated.resources.repeat
 import myapplication.shared.generated.resources.schedule
 import myapplication.shared.generated.resources.timelapse
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import randomUUID
-import screens.home.TaskViewModel
+import screens.home.TaskRepository
 import services.UserService.currentUser
 import utils.AppIconButton
 import utils.ColorHintCircle
@@ -102,6 +107,7 @@ import kotlin.time.Duration.Companion.minutes
 
 data class TaskScreenModel(
     val existingTask: Task? = null,
+    val existingType: TaskType? = null,
     val names: MutableState<List<MutableState<String>>> = mutableStateOf(listOf(mutableStateOf(""))),
     val taskType: MutableState<TaskType?> = mutableStateOf(null),
     val dueDate: MutableState<Instant?> = mutableStateOf(null),
@@ -109,6 +115,8 @@ data class TaskScreenModel(
     val notes: MutableState<String> = mutableStateOf(""),
     val dialogText: MutableState<String> = mutableStateOf(""),
     val duration: MutableState<Duration?> = mutableStateOf(null),
+    val tone: MutableState<Tone> = mutableStateOf(defaultTone.value),
+    val repeatInterval: MutableState<RepeatInterval> = mutableStateOf(RepeatInterval.NONE),
 ) {
     val existing: Boolean get() = existingTask != null
 
@@ -167,7 +175,9 @@ data class TaskScreenModel(
             complete = false,
             dueDate = dueDate.value,
             notes = notes.value,
-            duration = duration.value
+            duration = duration.value,
+            tone = tone.value,
+            repeatInterval = repeatInterval.value
         )
     }
 
@@ -184,12 +194,15 @@ data class TaskScreenModel(
     companion object {
         fun fromExisting(task: Task, type: TaskType) = TaskScreenModel(
             existingTask = task,
+            existingType = type,
             names = mutableStateOf(listOf(mutableStateOf(task.name))),
             taskType = mutableStateOf(type),
             dueDate = mutableStateOf(task.dueDate ?: now()),
             assignedTo = mutableStateOf(task.assignees),
             notes = mutableStateOf(task.notes ?: ""),
-            duration = mutableStateOf(task.duration)
+            duration = mutableStateOf(task.duration),
+            tone = mutableStateOf(task.tone),
+            repeatInterval = mutableStateOf(task.repeatInterval)
         )
     }
 }
@@ -224,7 +237,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                     return@Button
                 }
                 coScope.launch {
-                    TaskViewModel.putTask(model)
+                    TaskRepository.putTask(model)
                     nav.hide()
                 }
             },
@@ -253,7 +266,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                         modifier = Modifier.align(Alignment.CenterVertically),
                         onClick = {
                             coScope.launch {
-                                TaskViewModel.delete(it, model.taskType.value ?: return@launch)
+                                TaskRepository.delete(it, model.taskType.value ?: return@launch)
                                 navigator.hide()
                             }
                         },
@@ -324,7 +337,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
     fun TaskTypeRow(modifier: Modifier = Modifier) {
-        val types = TaskViewModel.taskMap.value?.keys ?: emptySet()
+        val types = TaskRepository.taskMap.value?.keys ?: emptySet()
 
         fun selectProject(type: TaskType? = null) {
             DialogCoordinator.show(DialogData {
@@ -456,17 +469,17 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
         }
     }
 
-    @OptIn(ExperimentalResourceApi::class)
+    @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class)
     @Composable
     fun ColumnScope.DurationSelectionRow(modifier: Modifier = Modifier) {
         AnimatedVisibility(model.dueDate.value != null) {
-            Row(
+            FlowRow(
                 modifier = modifier.fillMaxWidth().padding(top = 8.dp),
                 horizontalArrangement = Arrangement.End
             ) {
                 HighlightBox(
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    text = if (model.duration.value == null) "Select Duration" else model.duration.value.toString(),
+                    text = if (model.duration.value == null) "Duration" else model.duration.value.toString(),
                     color = MaterialTheme.colorScheme.primary,
                     backgroundColor = MaterialTheme.colorScheme.primaryContainer,
                     frontIcon = {
@@ -573,6 +586,45 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                             }
                         })
                     })
+                HighlightBox(
+                    modifier = Modifier.padding(start = 8.dp).align(Alignment.CenterVertically),
+                    text = if (model.repeatInterval.value == RepeatInterval.NONE) "Repeat" else model.repeatInterval.value.title,
+                    color = MaterialTheme.colorScheme.primary,
+                    backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                    frontIcon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.repeat),
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    onClick = {
+                        DialogCoordinator.show(DialogData {
+                            var repeatInterval by remember { mutableStateOf(model.repeatInterval.value) }
+                            DialogColumn {
+                                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                                    FlowRow {
+                                        RepeatInterval.values().forEach {
+                                            HighlightBox(modifier = Modifier.padding(4.dp)
+                                                .align(Alignment.CenterVertically),
+                                                text = it.title,
+                                                backgroundColor = if (repeatInterval == it) MaterialTheme.colorScheme.primaryContainer else lightGrey,
+                                                color = if (repeatInterval == it) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                                                textStyle = MaterialTheme.typography.bodyLarge,
+                                                onClick = { repeatInterval = it }
+                                            )
+                                        }
+                                    }
+                                    FilledTonalButton(modifier = Modifier.padding(top = 8.dp).align(Alignment.CenterHorizontally), onClick = {
+                                        model.repeatInterval.value = repeatInterval
+                                        DialogCoordinator.close()
+                                    }) {
+                                        Text("Set Repeating")
+                                    }
+                                }
+                            }
+                        })
+                    })
             }
         }
     }
@@ -613,7 +665,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class, ExperimentalLayoutApi::class)
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     fun ColumnScope.AdvancedRow(modifier: Modifier) {
         var usingAdvanced by remember { mutableStateOf(false) }
@@ -643,17 +695,23 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
         AnimatedVisibility(usingAdvanced) {
             Column {
                 Text(modifier = modifier.padding(top = 16.dp), text = "Tone")
-                Row(modifier = modifier.fillMaxWidth()) {
-                    FlowRow(modifier = Modifier.weight(1f)) {
+                Row(modifier = modifier.fillMaxWidth().padding(top = 8.dp)) {
+                    FlowRow(modifier = Modifier.weight(1f).align(Alignment.CenterVertically)) {
                         AlertTone.values().forEach { tone ->
                             HighlightBox(
                                 modifier = Modifier.padding(top = 4.dp, end = 4.dp),
-                                text = tone.name
+                                text = tone.name,
+                                color = if (model.tone.value.name == tone.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
+                                backgroundColor = if (model.tone.value.name == tone.name) MaterialTheme.colorScheme.primaryContainer else lightGrey,
+                                textStyle = MaterialTheme.typography.bodyMedium,
+                                onClick = {
+                                    model.tone.value = Tone(name = tone.name)
+                                }
                             )
                         }
                     }
                     AppIconButton(
-                        modifier = Modifier.padding(top = 4.dp, end = 4.dp),
+                        modifier = Modifier.padding(top = 4.dp, end = 4.dp).align(Alignment.CenterVertically),
                         onClick = {
                             // add tone
                         })
@@ -665,13 +723,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                     value = model.notes.value,
                     onValueChange = { model.notes.value = it },
                     placeholder = { Text("Add a description here") })
-                Text(modifier = modifier.padding(top = 16.dp), text = "Notes")
-
             }
         }
     }
-}
-
-enum class AlertTone {
-    Casual, Rude, Foul, Gentle, Formal
 }
