@@ -26,27 +26,42 @@ object TaskRepository {
 
     suspend fun putType(taskType: TaskType) = withContext(Dispatchers.IO) {
         TaskService.setTaskType(taskType)
-        update()
+        taskMap.value = taskMap.value?.toMutableMap()?.apply {
+            put(taskType, this[taskType] ?: emptyList())
+        }
     }
 
     suspend fun putTask(screenTask: TaskScreenModel) = withContext(Dispatchers.IO) {
-        if (screenTask.existingType?.id != screenTask.taskType.value?.id) {
-            delete(screenTask.existingTask!!, screenTask.existingType!!)
+        val tasks = screenTask.toTasks()
+        val type = screenTask.taskType.value ?: return@withContext
+
+        tasks.forEach {
+            TaskService.setTask(it, type)
         }
-        screenTask.toTasks().forEach {
-            TaskService.setTask(it, screenTask.taskType.value ?: return@withContext)
+        taskMap.value = taskMap.value?.toMutableMap()?.apply {
+            tasks.forEach { task ->
+                put(type, this[type]?.toMutableList()?.apply {
+                    removeAll { it.id == task.id }
+                    add(task)
+                }?.toList() ?: emptyList())
+            }
         }
-        update()
     }
 
     suspend fun delete(taskType: TaskType) = withContext(Dispatchers.IO) {
         TaskService.deleteTaskType(taskType)
-        update()
+        taskMap.value = taskMap.value?.toMutableMap()?.apply {
+            this.remove(taskType)
+        }
     }
 
     suspend fun delete(task: Task, taskType: TaskType) = withContext(Dispatchers.IO) {
         TaskService.deleteTask(task, taskType)
-        update()
+        taskMap.value = taskMap.value?.toMutableMap()?.apply {
+            put(taskType, this.get(taskType)?.toMutableList()?.apply {
+                removeAll { it.id == task.id }
+            }?.toList() ?: emptyList())
+        }
     }
 
     fun allTasks() = taskMap.value?.values?.flatten()?.toSet() ?: emptySet()

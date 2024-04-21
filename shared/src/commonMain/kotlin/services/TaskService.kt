@@ -7,6 +7,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import models.Task
 import models.TaskType
+import screens.home.TaskRepository
 
 object TaskService {
 
@@ -34,8 +35,7 @@ object TaskService {
         if (taskType.id.isEmpty() || taskType.name.isEmpty() || task.id.isEmpty() || task.name.isEmpty()) return@withContext
         try {
             val groupPath = GroupService.getActiveGroupPath()
-            Firebase.firestore.document("$groupPath/taskTypes/${taskType.id}/tasks/${task.id}")
-                .set(task)
+            Firebase.firestore.document("$groupPath/taskTypes/${taskType.id}/tasks/${task.id}").set(task, merge = true)
         } catch (e: Exception) {
         }
     }

@@ -1,3 +1,4 @@
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +18,7 @@ import models.AlertTone
 import models.Tone
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.Font
+import utils.decreaseContrast
 
 val green = Color(0xff27ae60)
 val lightGreen = Color(0xff2ecc71)
@@ -85,3 +87,6 @@ fun AppTheme(content: @Composable () -> Unit) {
         content = content
     )
 }
+
+@Composable
+fun backgroundContainer(): Color = MaterialTheme.colorScheme.background.decreaseContrast(1.5f)

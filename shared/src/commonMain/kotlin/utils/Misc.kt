@@ -44,8 +44,11 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import com.materialkolor.contrast.Contrast
 import com.materialkolor.ktx.darken
 import com.materialkolor.ktx.lighten
+import com.materialkolor.ktx.toColor
+import com.materialkolor.ktx.toHct
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.storage.storage
 import io.kamel.image.KamelImage
@@ -60,6 +63,15 @@ object NoRippleTheme : RippleTheme {
     @Composable
     override fun rippleAlpha(): RippleAlpha = RippleAlpha(0.0f, 0.0f, 0.0f, 0.0f)
 }
+
+//@Composable
+//fun Color.background(): Color {
+//    return if (isSystemInDarkTheme()) {
+//        toHct().with(95.0).toColor()
+//    } else {
+//        toHct().withHue(5.0).toColor()
+//    }
+//}
 
 @Composable
 fun Color.increaseContrast(ratio: Float = 1f): Color {
@@ -104,7 +116,8 @@ fun HighlightBox(
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
     textStyle: TextStyle = MaterialTheme.typography.labelMedium,
-    text: String?
+    text: String?,
+    textModifier: Modifier = Modifier,
 ) {
     val mainColor = color ?: MaterialTheme.colorScheme.primary
     val background = backgroundColor ?: MaterialTheme.colorScheme.primaryContainer
@@ -122,7 +135,7 @@ fun HighlightBox(
         }
         text?.let {
             Text(
-                modifier = if (frontIcon == null) Modifier.padding(8.dp) else Modifier
+                modifier = if (frontIcon == null) textModifier.padding(8.dp) else textModifier
                     .padding(end = 12.dp)
                     .align(Alignment.CenterVertically),
                 text = text,
@@ -220,12 +233,13 @@ fun AppIconButton(
     onClick: () -> Unit,
     painter: Painter = rememberVectorPainter(Icons.Rounded.Add),
     containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-    contentColor: Color = MaterialTheme.colorScheme.secondary
+    contentColor: Color = MaterialTheme.colorScheme.secondary,
+    ratio: Float = .6f
 ) {
     FilledTonalIconButton(
         modifier = modifier, onClick = onClick,
         colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = containerColor)
     ) {
-        Icon(modifier = Modifier.fillMaxSize(.6f), painter = painter, contentDescription = "", tint = contentColor)
+        Icon(modifier = Modifier.fillMaxSize(ratio), painter = painter, contentDescription = "", tint = contentColor)
     }
 }

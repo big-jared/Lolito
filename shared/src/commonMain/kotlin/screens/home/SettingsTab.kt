@@ -44,6 +44,7 @@ import cafe.adriel.voyager.navigator.tab.TabOptions
 import color
 import com.eygraber.compose.colorpicker.ColorPicker
 import com.materialkolor.PaletteStyle
+import com.materialkolor.ktx.blend
 import defaultTone
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
@@ -319,14 +320,7 @@ object SettingsTab : Tab {
                     }
                 }
                 FilledTonalButton(
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp).border(
-                        1.dp,
-                        color = MaterialTheme.colorScheme.secondary,
-                        shape = RoundedCornerShape(16.dp)
-                    ).background(
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = RoundedCornerShape(16.dp)
-                    ),
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     onClick = {
                         coScope.launch {
                             try {
@@ -353,7 +347,7 @@ object SettingsTab : Tab {
 
             return remember {
                 TabOptions(
-                    index = 2u,
+                    index = 3u,
                     title = title,
                     icon = icon
                 )
@@ -364,12 +358,8 @@ object SettingsTab : Tab {
 @Composable
 fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
-        modifier = Modifier.padding(top = 8.dp).border(
-            1.dp,
-            color = MaterialTheme.colorScheme.secondary,
-            shape = RoundedCornerShape(16.dp)
-        ).background(
-            color = MaterialTheme.colorScheme.secondaryContainer,
+        modifier = Modifier.padding(top = 8.dp).background(
+            color = MaterialTheme.colorScheme.background.blend(MaterialTheme.colorScheme.primaryContainer),
             shape = RoundedCornerShape(16.dp)
         ).padding(16.dp)
     ) {

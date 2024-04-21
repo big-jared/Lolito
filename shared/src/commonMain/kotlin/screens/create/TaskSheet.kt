@@ -64,6 +64,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import backgroundContainer
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import defaultTone
 import kotlinx.coroutines.Dispatchers
@@ -100,6 +101,7 @@ import utils.DialogCoordinator
 import utils.DialogData
 import utils.HighlightBox
 import utils.ProfileIcon
+import utils.decreaseContrast
 import utils.showSimpleDialog
 import utils.toHourMinuteString
 import kotlin.time.Duration
@@ -173,7 +175,7 @@ data class TaskScreenModel(
             name = it.value,
             creator = currentUser!!,
             assignees = assignedTo.value,
-            complete = false,
+            complete = existingTask?.complete ?: false,
             dueDate = dueDate.value,
             notes = notes.value,
             duration = duration.value,
@@ -362,7 +364,7 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                     HighlightBox(modifier = Modifier.padding(4.dp)
                         .align(Alignment.CenterVertically),
                         text = it.name,
-                        backgroundColor = if (model.taskType.value == it) color.copy(alpha = .5f) else lightGrey,
+                        backgroundColor = if (model.taskType.value == it) color.copy(alpha = .5f) else backgroundContainer(),
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         frontIcon = { ColorHintCircle(Modifier.size(24.dp), color) },
                         onClick = { model.taskType.value = it },
@@ -703,11 +705,11 @@ class TaskSheet(val model: TaskScreenModel = TaskScreenModel()) : BottomSheetScr
                                 modifier = Modifier.padding(top = 4.dp, end = 4.dp),
                                 text = tone.name,
                                 color = if (model.tone.value.name == tone.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-                                backgroundColor = if (model.tone.value.name == tone.name) MaterialTheme.colorScheme.primaryContainer else lightGrey,
-                                textStyle = MaterialTheme.typography.bodyMedium,
+                                backgroundColor = if (model.tone.value.name == tone.name) MaterialTheme.colorScheme.primaryContainer else backgroundContainer(),
                                 onClick = {
                                     model.tone.value = Tone(name = tone.name)
-                                }
+                                },
+                                textModifier = Modifier.padding(2.dp).padding(horizontal = 2.dp)
                             )
                         }
                     }
