@@ -69,6 +69,7 @@ import utils.DialogData
 import utils.FullScreenProgressIndicator
 import utils.Lottie
 import utils.decreaseContrast
+import utils.emptyState
 import utils.increaseContrast
 import utils.takeIfNotEmpty
 
@@ -101,7 +102,7 @@ object HomeTab : Tab {
                     }.toMap()
 
                     if (filteredTasks.isEmpty()) {
-                        Lottie(modifier = Modifier.padding(16.dp), fileName = "empty-state.json")
+                        Lottie(modifier = Modifier.padding(16.dp), emptyState)
                     } else {
                         FlowRow(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.Center) {
                             filteredTasks.forEach { (type, tasks) ->
