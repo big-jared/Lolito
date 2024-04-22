@@ -1,5 +1,9 @@
 package screens.schedule
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,22 +12,37 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
+import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,9 +53,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
@@ -44,6 +69,8 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.TextMeasurer
@@ -56,13 +83,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import backgroundContainer
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.DateTimeUnit
@@ -165,11 +196,16 @@ fun Calender(
         initialPageOffsetFraction = 0f,
         pageCount = { startingDayPage * 2 })
     val monthState = rememberDatePickerState()
-
+    var monthSelection by remember { mutableStateOf(false) }
 
     LaunchedEffect(selectedDate) {
-        monthState.selectedDateMillis = selectedDate.atTime(0, 0).toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
-        val anchorDate = if (selectedDate < now.startOfWeek()) selectedDate.minus(6, DateTimeUnit.DAY) else selectedDate
+        monthState.selectedDateMillis =
+            selectedDate.atTime(0, 0).toInstant(TimeZone.currentSystemDefault())
+                .toEpochMilliseconds()
+        val anchorDate = if (selectedDate < now.startOfWeek()) selectedDate.minus(
+            6,
+            DateTimeUnit.DAY
+        ) else selectedDate
         weekPagerState.scrollToPage(startingWeekPage - (now.startOfWeek() - anchorDate).days / 7)
         dayPagerState.scrollToPage(startingDayPage - (now - selectedDate).days)
     }
@@ -230,162 +266,124 @@ fun Calender(
                 .nestedScroll(connection)
         ) {
             Column() {
-//                MotionLayout(
-//                    progress = if (swipingState.progress.to == SwipingStates.COLLAPSED) swipingState.progress.fraction else 1f - swipingState.progress.fraction,
-//                    motionScene = MotionScene {
-//                        val headerBackground = createRefFor("headerBackground")
-//                        val header = createRefFor("header")
-//                        val month = createRefFor("month")
-//                        val week = createRefFor("week")
-//                        val dragBar = createRefFor("dragBar")
-//                        val day = createRefFor("day")
-//
-//                        defaultTransition(from = constraintSet {
-//                            constrain(headerBackground) {
-//                                top.linkTo(parent.top)
-//                                bottom.linkTo(dragBar.bottom)
-//                                height = Dimension.fillToConstraints
-//                            }
-//                            constrain(header) {
-//                                top.linkTo(parent.top)
-//                            }
-//                            constrain(week) {
-//                                top.linkTo(header.bottom)
-//                                height = Dimension.wrapContent
-//                                alpha = 1f
-//                            }
-//                            constrain(month) {
-//                                top.linkTo(header.bottom)
-//                                height = Dimension.value(0.dp)
-//                                alpha = 0f
-//                            }
-//                            constrain(dragBar) {
-//                                top.linkTo(week.bottom)
-//                                centerHorizontallyTo(parent)
-//                            }
-//                            constrain(day) {
-//                                top.linkTo(headerBackground.bottom)
-//                            }
-//                        }, to = constraintSet {
-//                            constrain(headerBackground) {
-//                                top.linkTo(parent.top)
-//                                bottom.linkTo(dragBar.bottom)
-//                                height = Dimension.fillToConstraints
-//                            }
-//                            constrain(header) {
-//                                top.linkTo(parent.top)
-//                            }
-//                            constrain(week) {
-//                                top.linkTo(header.bottom)
-//                                alpha = 0f
-//                            }
-//                            constrain(month) {
-//                                top.linkTo(header.bottom)
-//                                height = Dimension.wrapContent
-//                                alpha = 1f
-//                            }
-//                            constrain(dragBar) {
-//                                top.linkTo(month.bottom)
-//                                centerHorizontallyTo(parent)
-//                            }
-//                            constrain(day) {
-//                                top.linkTo(headerBackground.bottom)
-//                            }
-//                        })
-//                    },
-//                    modifier = Modifier.fillMaxSize()
-//                ) {
-//                    // header background
-//                    val background = MaterialTheme.colorScheme.background
-//                    val intermediate = MaterialTheme.colorScheme.primaryContainer.increaseContrast()
-//                    val primary = MaterialTheme.colorScheme.primaryContainer
-//                    Box(
-//                        modifier.layoutId("headerBackground").fillMaxWidth().height(0.dp)
-//                            .drawBehind {
-//                                this.drawRoundRect(
-//                                    Brush.linearGradient(
-//                                        0.0f to background,
-//                                        0.8f to intermediate,
-//                                        1.0f to primary,
-//                                        start = Offset(0.0f, 0.0f),
-//                                        end = Offset(0.0f, size.height),
-//                                    ), cornerRadius = CornerRadius(64f)
-//                                )
-//                            })
-//
-//                    // Header
-//                    Header(
-//                        modifier = Modifier.layoutId("header").fillMaxWidth()
-//                            .zIndex(4f)
-//                            .padding(horizontal = 8.dp)
-//                            .padding(top = 8.dp), startDay = now.minus(
-//                            startingWeekPage - weekPagerState.currentPage, DateTimeUnit.WEEK
-//                        ).startOfWeek()
-//                    )
-//
-//                    // Month content
-//                    Box(modifier.layoutId("month").fillMaxWidth().zIndex(4f)) {
-//                        DatePicker(modifier = Modifier.fillMaxWidth(), state = monthState, title = null, headline = null, showModeToggle = false)
-//                    }
-//
-//                    // Week content
-//                    Box(modifier.layoutId("week")) {
-//                        HorizontalPager(
-//                            modifier = modifier.fillMaxWidth().padding(horizontal = 4.dp),
-//                            state = weekPagerState,
-//                            verticalAlignment = Alignment.Top
-//                        ) { page ->
-//                            startOfWeek =
-//                                now.minus(startingWeekPage - page, DateTimeUnit.WEEK).startOfWeek()
-//                            Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
-//                                var day = startOfWeek
-//                                repeat((1..7).count()) {
-//                                    CalendarItem(
-//                                        day = day,
-//                                        selected = day == selectedDate,
-//                                        isToday = day == now,
-//                                        events = provider.events.value[day] ?: emptyList()
-//                                    ) {
-//                                        coScope.launch {
-//                                            selectedDate = it
-//                                        }
-//                                    }
-//                                    day = day.plus(1, DateTimeUnit.DAY)
-//                                }
-//                            }
-//                        }
-//                    }
-//
-//                    // Drag bar
-//                    Box(
-//                        modifier = Modifier.layoutId("dragBar").padding(vertical = 12.dp)
-//                            .size(32.dp, 4.dp)
-//                            .background(
-//                                MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp)
-//                            )
-//                    )
-//
-//                    Column(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .verticalScroll(rememberScrollState())
-//                            .nestedScroll(TopAppBarDefaults.enterAlwaysScrollBehavior().nestedScrollConnection)
-//                            .layoutId("day")
-//                    ) {
-//                        HorizontalPager(
-//                            modifier = modifier.padding(top = 8.dp).fillMaxWidth(),
-//                            state = dayPagerState,
-//                            verticalAlignment = Alignment.Top
-//                        ) { page ->
-//                            val date = now.plus(startingDayPage - page, DateTimeUnit.DAY)
-//                            DayColumn(provider.events.value[date] ?: emptyList())
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-            }}}}
+                // header background
+                val background = MaterialTheme.colorScheme.surfaceContainerLowest
+                val intermediate = MaterialTheme.colorScheme.surfaceContainerLow
+                val primary = MaterialTheme.colorScheme.surfaceContainer
+
+                Column(
+                    modifier = Modifier.fillMaxWidth().background(
+                        shape = RoundedCornerShape(
+                            bottomStart = 16.dp,
+                            bottomEnd = 16.dp
+                        ), color = MaterialTheme.colorScheme.surface
+                    ).drawBehind {
+                        this.drawRoundRect(
+                            Brush.linearGradient(
+                                0.0f to background,
+                                0.8f to intermediate,
+                                1.0f to primary,
+                                start = Offset(0.0f, 0.0f),
+                                end = Offset(0.0f, size.height),
+                            ), cornerRadius = CornerRadius(64f)
+                        )
+                    }
+                ) {
+                    // Header
+                    Header(
+                        modifier = Modifier.layoutId("header").fillMaxWidth()
+                            .zIndex(4f)
+                            .padding(horizontal = 8.dp)
+                            .padding(top = 8.dp), startDay = now.minus(
+                            startingWeekPage - weekPagerState.currentPage, DateTimeUnit.WEEK
+                        ).startOfWeek()
+                    )
+
+                    Box {
+                        // Month content
+                        Box(
+                            modifier.layoutId("week")
+                                .padding(top = 8.dp)
+                                .heightIn(max = 360.dp)
+                                .fillMaxHeight(if (swipingState.progress.to == SwipingStates.COLLAPSED) swipingState.progress.fraction else 1f - swipingState.progress.fraction)
+                                .alpha((if (swipingState.progress.to == SwipingStates.COLLAPSED) swipingState.progress.fraction else 1f - swipingState.progress.fraction))
+                        ) {
+                            DatePicker(
+                                modifier = Modifier.fillMaxWidth(),
+                                state = monthState,
+                                title = null,
+                                headline = null,
+                                showModeToggle = false
+                            )
+                        }
+
+                        // Week content
+                        Box(
+                            modifier.layoutId("week")
+                                .heightIn(max = 84.dp)
+//                                .fillMaxHeight(if (swipingState.progress.to == SwipingStates.EXPANDED) swipingState.progress.fraction else 1f - swipingState.progress.fraction)
+                                .alpha(if (swipingState.progress.to == SwipingStates.EXPANDED) swipingState.progress.fraction else 1f - swipingState.progress.fraction)
+                        ) {
+                            HorizontalPager(
+                                modifier = modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                                state = weekPagerState,
+                                verticalAlignment = Alignment.Top
+                            ) { page ->
+                                startOfWeek =
+                                    now.minus(startingWeekPage - page, DateTimeUnit.WEEK)
+                                        .startOfWeek()
+                                Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                                    var day = startOfWeek
+                                    repeat((1..7).count()) {
+                                        CalendarItem(
+                                            day = day,
+                                            selected = day == selectedDate,
+                                            isToday = day == now,
+                                            events = provider.events.value[day] ?: emptyList()
+                                        ) {
+                                            coScope.launch {
+                                                selectedDate = it
+                                            }
+                                        }
+                                        day = day.plus(1, DateTimeUnit.DAY)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier.padding(vertical = 12.dp)
+                                .size(32.dp, 4.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.onSurfaceVariant, shape = RoundedCornerShape(8.dp)
+                                )
+                                .align(Alignment.Center)
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .nestedScroll(TopAppBarDefaults.enterAlwaysScrollBehavior().nestedScrollConnection)
+                        .layoutId("day")
+                ) {
+                    HorizontalPager(
+                        modifier = modifier.padding(top = 8.dp).fillMaxWidth(),
+                        state = dayPagerState,
+                        verticalAlignment = Alignment.Top
+                    ) { page ->
+                        val date = now.plus(startingDayPage - page, DateTimeUnit.DAY)
+                        DayColumn(provider.events.value[date] ?: emptyList())
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun RowScope.CalendarItem(
@@ -398,13 +396,13 @@ fun RowScope.CalendarItem(
 ) {
     var backgroundedModifier = if (selected) {
         modifier.background(
-            color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(16.dp)
+            color = MaterialTheme.colorScheme.surfaceContainerHighest, shape = RoundedCornerShape(16.dp)
         )
     } else modifier
     backgroundedModifier = if (isToday) {
         backgroundedModifier.border(
             width = 2.dp,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             shape = RoundedCornerShape(16.dp)
         )
     } else backgroundedModifier
@@ -415,7 +413,7 @@ fun RowScope.CalendarItem(
             modifier = Modifier.fillMaxWidth(),
             text = day.dayOfMonth.toString(),
             textAlign = TextAlign.Center,
-            color = if (selected) MaterialTheme.colorScheme.primary.increaseContrast() else MaterialTheme.colorScheme.onBackground
+            color = if (selected) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
         )
         Text(
             modifier = Modifier.fillMaxWidth(),
@@ -423,7 +421,7 @@ fun RowScope.CalendarItem(
                 Locale.current
             ).take(3),
             textAlign = TextAlign.Center,
-            color = if (selected) MaterialTheme.colorScheme.primary.increaseContrast() else MaterialTheme.colorScheme.onBackground
+            color = if (selected) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -436,7 +434,7 @@ fun DayColumn(events: List<Schedulable>) {
     Box(modifier = Modifier.fillMaxWidth()
         .height(1000.dp)
         .drawWithContent {
-//            gridLines(fontResolver, containerColor)
+            gridLines(fontResolver, containerColor)
         })
 }
 
