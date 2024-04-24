@@ -21,6 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.toRect
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import cafe.adriel.voyager.core.screen.Screen
@@ -47,35 +53,45 @@ object AuthenticatedScreen : Screen {
     override fun Content() {
         val bottomSheetNav = LocalBottomSheetNavigator.current
         TabNavigator(HomeTab) {
-            Scaffold(
-                content = {
-                    Box(modifier = Modifier.padding(it)) {
-                        CurrentTab()
-                    }
-                },
-                bottomBar = {
-                    Box() {
-                        BottomNavigation(
-                            modifier = Modifier.systemBarsPadding().padding(top = 24.dp)
-                                .background(MaterialTheme.colorScheme.primaryContainer).zIndex(3f),
-                            backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                            elevation = 0.dp
-                        ) {
-                            TabNavigationItem(HomeTab)
-                            TabNavigationItem(ScheduleTab)
-                            Spacer(Modifier.width(60.dp))
-                            TabNavigationItem(NotificationsTab)
-                            TabNavigationItem(SettingsTab)
-                        }
-
-                        AppIconButton(modifier = Modifier.size(60.dp).zIndex(4f)
-                            .align(Alignment.TopCenter),
-                            onClick = {
-                                bottomSheetNav.show(TaskSheet())
-                            })
-                    }
+            Scaffold(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest, content = {
+                Box(modifier = Modifier.padding(it)) {
+                    CurrentTab()
                 }
-            )
+            }, bottomBar = {
+                Box() {
+                    BottomNavigation(
+                        modifier = Modifier.systemBarsPadding().padding(top = 30.dp)
+                            .background(MaterialTheme.colorScheme.primaryContainer).zIndex(3f),
+                        backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                        elevation = 0.dp
+                    ) {
+                        TabNavigationItem(HomeTab)
+                        TabNavigationItem(ScheduleTab)
+                        Spacer(Modifier.width(60.dp))
+                        TabNavigationItem(NotificationsTab)
+                        TabNavigationItem(SettingsTab)
+                    }
+
+                    val tertiary = MaterialTheme.colorScheme.tertiary
+                    AppIconButton(
+                        modifier = Modifier.size(60.dp).zIndex(4f)
+                            .align(Alignment.TopCenter),
+                        onClick = {
+                            bottomSheetNav.show(TaskSheet())
+                        },
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.tertiary
+                    )
+                    Box(modifier = Modifier.size(60.dp).zIndex(4f)
+                        .align(Alignment.TopCenter)
+                        .drawWithContent {
+                            drawPath(Path().apply {
+                                this.moveTo(0f, size.height / 2)
+                                this.arcTo(size.toRect(), 0f, 180f, true)
+                            }, tertiary, style = Stroke(width = 3.dp.toPx()))
+                        })
+                }
+            })
         }
     }
 }
@@ -91,8 +107,7 @@ private fun RowScope.TabNavigationItem(tab: Tab) {
 
     val ripple = LocalRippleTheme.current
     CompositionLocalProvider(LocalRippleTheme provides NoRippleTheme) {
-        BottomNavigationItem(
-            selected = tabNavigator.current == tab,
+        BottomNavigationItem(selected = tabNavigator.current == tab,
             onClick = { tabNavigator.current = tab },
             icon = {
                 CompositionLocalProvider(LocalRippleTheme provides ripple) {
@@ -113,7 +128,6 @@ private fun RowScope.TabNavigationItem(tab: Tab) {
                         }
                     }
                 }
-            }
-        )
+            })
     }
 }

@@ -1,11 +1,16 @@
 package screens.preAuth
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -48,7 +53,7 @@ class SignInScreen: Screen {
         val coScope = rememberCoroutineScope()
 
         Surface(color = MaterialTheme.colorScheme.background) {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
                 Spacer(modifier = Modifier.weight(1f))
                 Column(
                     modifier = Modifier.fillMaxWidth()
@@ -59,7 +64,7 @@ class SignInScreen: Screen {
                             .padding(vertical = 8.dp),
                         text = "Email"
                     )
-                    OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally),
+                    OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally).imePadding(),
                         value = username,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         maxLines = 1,
@@ -71,7 +76,7 @@ class SignInScreen: Screen {
                             .padding(vertical = 8.dp),
                         text = "Password"
                     )
-                    OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally),
+                    OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally).imePadding(),
                         value = password,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         visualTransformation = PasswordVisualTransformation(),

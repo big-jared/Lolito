@@ -1,9 +1,5 @@
 package screens.schedule
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,36 +8,31 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
+import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
@@ -57,8 +48,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -70,7 +59,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.layoutId
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.TextMeasurer
@@ -78,17 +66,16 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Velocity
-import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import backgroundContainer
-import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import kotlinx.coroutines.Dispatchers
@@ -102,23 +89,28 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atTime
+import kotlinx.datetime.daysUntil
 import kotlinx.datetime.minus
+import kotlinx.datetime.monthsUntil
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
-import screens.create.TaskSheet
+import models.ScheduledTask
+import models.Task
+import models.TaskType
+import models.User
 import screens.home.TaskRepository
-import utils.AppIconButton
-import utils.increaseContrast
 import utils.toHourMinuteString
+import kotlin.math.max
+import kotlin.math.roundToInt
+import kotlin.time.Duration
 
 object ScheduleTab : Tab {
     @Composable
     override fun Content() {
         Calender(
             provider = ScheduleProvider(eventsForRange = { range ->
-                TaskRepository.allTasks()
+                TaskRepository.allTasks().mapNotNull { it.toScheduledTask() }.toSet()
             }),
         )
     }
@@ -136,25 +128,15 @@ object ScheduleTab : Tab {
         }
 }
 
-interface Schedulable {
-    val time: Instant?
-
-    @Composable
-    open fun color(): Color = MaterialTheme.colorScheme.primary
-
-    fun isScheduled() = time != null
-}
-
 class DateRange(start: LocalDate, end: LocalDate)
 
 class ScheduleProvider(
-    val eventsForRange: (DateRange) -> Set<Schedulable>
+    val eventsForRange: (DateRange) -> Set<ScheduledTask>
 ) {
-    val events = mutableStateOf<Map<LocalDate, List<Schedulable>>>(emptyMap())
+    val events = mutableStateOf<Map<LocalDate, List<ScheduledTask>>>(emptyMap())
 
     suspend fun refresh(dateRange: DateRange) = withContext(Dispatchers.IO) {
-        events.value = eventsForRange(dateRange).filterNot { it.time == null }
-            .groupBy { it.time!!.toLocalDateTime(TimeZone.currentSystemDefault()).date }
+        events.value = eventsForRange(dateRange).groupBy { it.due.toLocalDateTime(TimeZone.currentSystemDefault()).date }
     }
 }
 
@@ -166,10 +148,29 @@ fun LocalDate.startOfWeek(): LocalDate {
     return start
 }
 
+fun LocalDate.startOfMonth(): LocalDate {
+    var start = this
+    while (start.dayOfMonth != 1) {
+        start = start.minus(1, DateTimeUnit.DAY)
+    }
+    return start
+}
+
+fun LocalDate.monthDays(): List<LocalDate> {
+    var current = this.startOfMonth().startOfWeek()
+    val dates = mutableListOf<LocalDate>()
+    while (current.month <= this.month || dates.size % 7 != 6) {
+        dates.add(current)
+        current = current.plus(1, DateTimeUnit.DAY)
+    }
+    dates.add(current)
+    return dates
+}
+
 // Helper class defining swiping State
 enum class SwipingStates {
-    EXPANDED,
-    COLLAPSED
+    Collapsed,
+    Expanded
 }
 
 @OptIn(
@@ -183,35 +184,44 @@ fun Calender(
 ) {
     val now = now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     var selectedDate by remember { mutableStateOf(now().toLocalDateTime(TimeZone.currentSystemDefault()).date) }
+    var shownMonth by remember { mutableStateOf(selectedDate) }
     var startOfWeek by remember { mutableStateOf(selectedDate.startOfWeek()) }
-    val swipingState = rememberSwipeableState(initialValue = SwipingStates.EXPANDED)
+    var startOfMonth by remember { mutableStateOf(selectedDate.startOfMonth()) }
+    val swipingState = rememberSwipeableState(initialValue = SwipingStates.Collapsed)
+    val swipePercentage = if (swipingState.progress.to == SwipingStates.Expanded) swipingState.progress.fraction else 1f - swipingState.progress.fraction
     val coScope = rememberCoroutineScope()
     val startingWeekPage = 1000
     val startingDayPage = 4000
+    val startingMonthPage = 4000
 
+    val monthPagerState = rememberPagerState(initialPage = startingMonthPage,
+        initialPageOffsetFraction = 0f,
+        pageCount = { startingMonthPage * 2 })
     val weekPagerState = rememberPagerState(initialPage = startingWeekPage,
         initialPageOffsetFraction = 0f,
         pageCount = { startingWeekPage * 2 })
     val dayPagerState = rememberPagerState(initialPage = startingDayPage,
         initialPageOffsetFraction = 0f,
         pageCount = { startingDayPage * 2 })
-    val monthState = rememberDatePickerState()
-    var monthSelection by remember { mutableStateOf(false) }
 
     LaunchedEffect(selectedDate) {
-        monthState.selectedDateMillis =
-            selectedDate.atTime(0, 0).toInstant(TimeZone.currentSystemDefault())
-                .toEpochMilliseconds()
-        val anchorDate = if (selectedDate < now.startOfWeek()) selectedDate.minus(
-            6,
-            DateTimeUnit.DAY
-        ) else selectedDate
-        weekPagerState.scrollToPage(startingWeekPage - (now.startOfWeek() - anchorDate).days / 7)
-        dayPagerState.scrollToPage(startingDayPage - (now - selectedDate).days)
+        val weekAnchorDate = if (selectedDate < now.startOfWeek()) selectedDate.minus(6, DateTimeUnit.DAY) else selectedDate
+        weekPagerState.scrollToPage(startingWeekPage + (now.startOfWeek().daysUntil(weekAnchorDate) / 7))
+        val monthAnchorDate = if (selectedDate < now.startOfMonth()) selectedDate.minus(1, DateTimeUnit.MONTH) else selectedDate
+        monthPagerState.scrollToPage(startingMonthPage + (now.startOfMonth().monthsUntil(monthAnchorDate)))
+        dayPagerState.scrollToPage(startingDayPage + (now.daysUntil(selectedDate)))
     }
 
     LaunchedEffect(dayPagerState.currentPage) {
         selectedDate = now.plus(dayPagerState.currentPage - startingDayPage, DateTimeUnit.DAY)
+    }
+
+    LaunchedEffect(weekPagerState.currentPage) {
+        shownMonth = now.plus(weekPagerState.currentPage - startingWeekPage, DateTimeUnit.WEEK).startOfWeek()
+    }
+
+    LaunchedEffect(monthPagerState.currentPage) {
+        shownMonth = now.plus(monthPagerState.currentPage - startingMonthPage, DateTimeUnit.MONTH).startOfMonth()
     }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -256,11 +266,11 @@ fun Calender(
                 .fillMaxSize()
                 .swipeable(
                     state = swipingState,
-                    thresholds = { _, _ -> FractionalThreshold(0.5f) },
+                    thresholds = { _, _ -> FractionalThreshold(0.8f) },
                     orientation = Orientation.Vertical,
                     anchors = mapOf(
-                        0f to SwipingStates.EXPANDED,
-                        heightInPx to SwipingStates.COLLAPSED,
+                        0f to SwipingStates.Collapsed,
+                        heightInPx to SwipingStates.Expanded,
                     )
                 )
                 .nestedScroll(connection)
@@ -268,8 +278,8 @@ fun Calender(
             Column() {
                 // header background
                 val background = MaterialTheme.colorScheme.surfaceContainerLowest
-                val intermediate = MaterialTheme.colorScheme.surfaceContainerLow
-                val primary = MaterialTheme.colorScheme.surfaceContainer
+                val intermediate = MaterialTheme.colorScheme.surfaceContainer
+                val primary = MaterialTheme.colorScheme.primaryContainer
 
                 Column(
                     modifier = Modifier.fillMaxWidth().background(
@@ -281,7 +291,7 @@ fun Calender(
                         this.drawRoundRect(
                             Brush.linearGradient(
                                 0.0f to background,
-                                0.8f to intermediate,
+                                0.5f to intermediate,
                                 1.0f to primary,
                                 start = Offset(0.0f, 0.0f),
                                 end = Offset(0.0f, size.height),
@@ -289,41 +299,16 @@ fun Calender(
                         )
                     }
                 ) {
-                    // Header
                     Header(
                         modifier = Modifier.layoutId("header").fillMaxWidth()
                             .zIndex(4f)
                             .padding(horizontal = 8.dp)
-                            .padding(top = 8.dp), startDay = now.minus(
-                            startingWeekPage - weekPagerState.currentPage, DateTimeUnit.WEEK
-                        ).startOfWeek()
+                            .padding(top = 8.dp),
+                        startDay = shownMonth
                     )
 
-                    Box {
-                        // Month content
-                        Box(
-                            modifier.layoutId("week")
-                                .padding(top = 8.dp)
-                                .heightIn(max = 360.dp)
-                                .fillMaxHeight(if (swipingState.progress.to == SwipingStates.COLLAPSED) swipingState.progress.fraction else 1f - swipingState.progress.fraction)
-                                .alpha((if (swipingState.progress.to == SwipingStates.COLLAPSED) swipingState.progress.fraction else 1f - swipingState.progress.fraction))
-                        ) {
-                            DatePicker(
-                                modifier = Modifier.fillMaxWidth(),
-                                state = monthState,
-                                title = null,
-                                headline = null,
-                                showModeToggle = false
-                            )
-                        }
-
-                        // Week content
-                        Box(
-                            modifier.layoutId("week")
-                                .heightIn(max = 84.dp)
-//                                .fillMaxHeight(if (swipingState.progress.to == SwipingStates.EXPANDED) swipingState.progress.fraction else 1f - swipingState.progress.fraction)
-                                .alpha(if (swipingState.progress.to == SwipingStates.EXPANDED) swipingState.progress.fraction else 1f - swipingState.progress.fraction)
-                        ) {
+                    Column {
+                        Box {
                             HorizontalPager(
                                 modifier = modifier.fillMaxWidth().padding(horizontal = 4.dp),
                                 state = weekPagerState,
@@ -339,13 +324,54 @@ fun Calender(
                                             day = day,
                                             selected = day == selectedDate,
                                             isToday = day == now,
-                                            events = provider.events.value[day] ?: emptyList()
+                                            swipingState = swipingState,
+                                            events = provider.events.value[day] ?: emptyList(),
+                                            showWeekday = true
                                         ) {
                                             coScope.launch {
                                                 selectedDate = it
                                             }
                                         }
                                         day = day.plus(1, DateTimeUnit.DAY)
+                                    }
+                                }
+                            }
+                        }
+
+                        Box(
+                            modifier
+                                .padding(vertical = 8.dp)
+                                .heightIn(max = 256.dp * swipePercentage)
+                                .alpha(swipePercentage)
+                        ) {
+                            HorizontalPager(
+                                modifier = modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                                state = monthPagerState,
+                                beyondBoundsPageCount = 0,
+                                verticalAlignment = Alignment.Top
+                            ) { page ->
+                                startOfMonth = now.minus(startingMonthPage - page, DateTimeUnit.MONTH).startOfMonth()
+                                Column {
+                                    val days = startOfMonth.monthDays()
+                                    days.chunked(7).forEach { week ->
+                                        Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                                            week.forEach { day ->
+                                                CalendarItem(
+                                                    day = day,
+                                                    selected = day == selectedDate,
+                                                    isToday = day == now,
+                                                    swipingState = null,
+                                                    events = provider.events.value[day]
+                                                        ?: emptyList(),
+                                                    showWeekday = false
+                                                ) {
+                                                    coScope.launch {
+                                                        selectedDate = it
+                                                        swipingState.animateTo(SwipingStates.Collapsed)
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -357,7 +383,8 @@ fun Calender(
                             modifier = Modifier.padding(vertical = 12.dp)
                                 .size(32.dp, 4.dp)
                                 .background(
-                                    MaterialTheme.colorScheme.onSurfaceVariant, shape = RoundedCornerShape(8.dp)
+                                    MaterialTheme.colorScheme.onSurfaceVariant,
+                                    shape = RoundedCornerShape(8.dp)
                                 )
                                 .align(Alignment.Center)
                         )
@@ -369,7 +396,6 @@ fun Calender(
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
                         .nestedScroll(TopAppBarDefaults.enterAlwaysScrollBehavior().nestedScrollConnection)
-                        .layoutId("day")
                 ) {
                     HorizontalPager(
                         modifier = modifier.padding(top = 8.dp).fillMaxWidth(),
@@ -385,57 +411,104 @@ fun Calender(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun RowScope.CalendarItem(
-    modifier: Modifier = Modifier.padding(2.dp),
+    modifier: Modifier = Modifier,
     day: LocalDate,
     selected: Boolean,
     isToday: Boolean,
-    events: List<Schedulable>,
+    showWeekday: Boolean,
+    events: List<ScheduledTask>,
+    swipingState: SwipeableState<SwipingStates>? = null,
     onSelected: (LocalDate) -> Unit
 ) {
-    var backgroundedModifier = if (selected) {
+    val shape = if (showWeekday) RoundedCornerShape(16.dp) else CircleShape
+    val swipePercentage = if (swipingState == null) 1f else
+        if (swipingState.progress.to == SwipingStates.Collapsed) swipingState.progress.fraction else 1f - swipingState.progress.fraction
+    val containerColor =
+        if (showWeekday) MaterialTheme.colorScheme.primaryContainer.copy(alpha = swipePercentage) else MaterialTheme.colorScheme.primary
+    val contentColor =
+        if (showWeekday) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = swipePercentage) else MaterialTheme.colorScheme.onPrimary
+
+    var backgroundedModifier = modifier
+    backgroundedModifier = if (selected) {
         modifier.background(
-            color = MaterialTheme.colorScheme.surfaceContainerHighest, shape = RoundedCornerShape(16.dp)
+            color = containerColor,
+            shape = shape
         )
-    } else modifier
+    } else backgroundedModifier
     backgroundedModifier = if (isToday) {
         backgroundedModifier.border(
             width = 2.dp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            shape = RoundedCornerShape(16.dp)
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = swipePercentage),
+            shape = shape
         )
     } else backgroundedModifier
 
-    Column(backgroundedModifier.weight(1f).clip(RoundedCornerShape(16.dp)).padding(2.dp)
-        .clickable { onSelected(day) }) {
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = day.dayOfMonth.toString(),
-            textAlign = TextAlign.Center,
-            color = if (selected) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = day.dayOfWeek.name.lowercase().capitalize(
-                Locale.current
-            ).take(3),
-            textAlign = TextAlign.Center,
-            color = if (selected) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
-        )
+    if (showWeekday) {
+        Column(backgroundedModifier.clip(shape).padding(4.dp).weight(1f)
+            .clickable { onSelected(day) }) {
+            Text(
+                modifier = Modifier.fillMaxWidth().heightIn(
+                    max = 28.dp * swipePercentage,
+                    min = if (swipingState == null) 32.dp else Dp.Unspecified
+                ),
+                text = day.dayOfMonth.toString(),
+                fontSize = 16.sp * swipePercentage,
+                textAlign = TextAlign.Center,
+                color = if (selected) contentColor else MaterialTheme.colorScheme.onSurface
+            )
+            if (showWeekday) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = day.dayOfWeek.name.lowercase().capitalize(
+                        Locale.current
+                    ).take(max(1.0, 3.0 * swipePercentage).roundToInt()),
+                    textAlign = TextAlign.Center,
+                    color = if (selected) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight((400f * (1 - swipePercentage)).toInt() + 400)
+                )
+            }
+        }
+    } else {
+        Box(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = backgroundedModifier.padding(2.dp).size(36.dp).align(Alignment.Center).clip(shape).clickable { onSelected(day) }.align(Alignment.Center),
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = day.dayOfMonth.toString(),
+                    textAlign = TextAlign.Center,
+                    color = if (selected) contentColor else MaterialTheme.colorScheme.onSurface)
+            }
+        }
     }
 }
 
 @Composable
-fun DayColumn(events: List<Schedulable>) {
+fun DayColumn(events: List<ScheduledTask>) {
     val containerColor = MaterialTheme.colorScheme.primary
     val fontResolver = LocalFontFamilyResolver.current
+
+    val
+
+    LazyColumn {
+        items(events.groupBy { it.due }.size) {
+            events[it]
+        }
+    }
 
     Box(modifier = Modifier.fillMaxWidth()
         .height(1000.dp)
         .drawWithContent {
             gridLines(fontResolver, containerColor)
         })
+}
+
+@Composable
+fun TaskRow(type: TaskType, tasks: Set<Task>) {
+
 }
 
 fun ContentDrawScope.gridLines(fontResolver: FontFamily.Resolver, primaryColor: Color) {
@@ -467,17 +540,19 @@ fun ContentDrawScope.gridLines(fontResolver: FontFamily.Resolver, primaryColor: 
 
 @Composable
 fun Header(modifier: Modifier = Modifier, startDay: LocalDate) {
-    val bottomSheetNavigator = LocalBottomSheetNavigator.current
-    Box(modifier = modifier) {
+    Row(modifier = modifier) {
         Text(
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier.align(Alignment.CenterVertically).padding(start = 8.dp),
             text = startDay.month.name.lowercase().capitalize(Locale.current),
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleLarge
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold
         )
-        AppIconButton(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            onClick = { bottomSheetNavigator.show(TaskSheet()) },
+        Text(
+            modifier = Modifier.align(Alignment.CenterVertically).padding(start = 8.dp),
+            text = "${startDay.year}",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineSmall
         )
     }
 }

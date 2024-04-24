@@ -12,6 +12,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import randomUUID
 import screens.schedule.Schedulable
+import screens.schedule.ScheduledTask
 import kotlin.time.Duration
 
 enum class RepeatInterval(val title: String) {
@@ -23,7 +24,7 @@ data class Task(
     val id: String = randomUUID(),
     val name: String,
     val creator: User,
-    val assignees: List<User> = emptyList(),
+    val assignees: Set<User> = emptySet(),
     val complete: Boolean = false,
     val createdDate: Instant = now(),
     val dueDate: Instant? = null,
@@ -31,9 +32,23 @@ data class Task(
     val notes: String? = null,
     val duration: Duration? = null,
     val tone: Tone = defaultTone.value
-) : Schedulable {
-    override val time: Instant? = dueDate
+) {
+    fun toScheduledTask(): ScheduledTask? {
+        return ScheduledTask(
+            due = dueDate ?: return null,
+            duration = duration ?: return null,
+            assignees = assignees,
+            completed = complete
+        )
+    }
 }
+
+data class ScheduledTask (
+    val due: Instant,
+    val duration: Duration,
+    val assignees: Set<User>,
+    val completed: Boolean,
+)
 
 @Serializable
 data class TaskType(

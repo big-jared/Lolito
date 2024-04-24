@@ -3,6 +3,7 @@ package com.jaredg.micro
 import android.app.Application
 import com.mmk.kmpnotifier.notification.NotifierManager
 import com.mmk.kmpnotifier.notification.configuration.NotificationPlatformConfiguration
+import leakcanary.LeakCanary
 
 class MicroApplication: Application() {
 

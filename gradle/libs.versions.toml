@@ -8,6 +8,7 @@ androidxAppCompat = "1.6.1"
 androidxCore = "1.10.1"
 koin = "3.5.0"
 koinCompose = "1.1.0"
+leakcanaryAndroid = "2.7"
 multiplatformSettings = "1.0.0"
 voyager = "1.1.0-alpha04"
 kotlinxSerialization = "1.6.2"
@@ -43,6 +44,7 @@ ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.r
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 #Preference Library

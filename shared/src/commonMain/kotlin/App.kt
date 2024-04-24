@@ -28,12 +28,12 @@ fun App() {
     val keyboardController = LocalSoftwareKeyboardController.current
 
     AppTheme {
-        val ripple = LocalRippleTheme.current
-        CompositionLocalProvider(LocalRippleTheme provides NoRippleTheme) {
-            Box(
-                Modifier.clickable { keyboardController?.hide() }
-            ) {
-                CompositionLocalProvider(LocalRippleTheme provides ripple) {
+//        val ripple = LocalRippleTheme.current
+//        CompositionLocalProvider(LocalRippleTheme provides NoRippleTheme) {
+//            Box(
+//                Modifier.clickable { keyboardController?.hide() }
+//            ) {
+//                CompositionLocalProvider(LocalRippleTheme provides ripple) {
                     BottomSheetNavigator(
                         sheetBackgroundColor = Color.Transparent
                     ) {
@@ -52,9 +52,9 @@ fun App() {
                             },
                         )
                     }
-                }
-            }
-        }
+//                }
+//            }
+//        }
     }
 }
 

@@ -24,8 +24,9 @@ interface BottomSheetScreen : Screen {
         val shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
         Surface(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.background, shape = shape)
-                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceDim, shape = shape)
+                .clip(shape),
+            color = MaterialTheme.colorScheme.surfaceContainerLowest
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth()
@@ -33,7 +34,7 @@ interface BottomSheetScreen : Screen {
             ) {
                 Box(
                     Modifier.height(6.dp).width(48.dp).background(
-                        MaterialTheme.colorScheme.harmonizeWithPrimary(lightGrey),
+                        MaterialTheme.colorScheme.surfaceTint,
                         RoundedCornerShape(12.dp)
                     )
                         .align(Alignment.CenterHorizontally)
