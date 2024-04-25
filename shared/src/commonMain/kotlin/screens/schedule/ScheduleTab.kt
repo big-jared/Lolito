@@ -491,13 +491,11 @@ fun DayColumn(events: List<ScheduledTask>) {
     val containerColor = MaterialTheme.colorScheme.primary
     val fontResolver = LocalFontFamilyResolver.current
 
-    val
-
-    LazyColumn {
-        items(events.groupBy { it.due }.size) {
-            events[it]
-        }
-    }
+//    LazyColumn {
+//        items(events.groupBy { it.due }.size) {
+//            events[it]
+//        }
+//    }
 
     Box(modifier = Modifier.fillMaxWidth()
         .height(1000.dp)

@@ -8,6 +8,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.PaletteStyle
+import micro.shared
 import micro.shared.generated.resources.Res
 import micro.shared.generated.resources.firacode_bold
 import micro.shared.generated.resources.firacode_light
@@ -49,13 +50,13 @@ var defaultTone = mutableStateOf(Tone(AlertTone.Casual.name))
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
-//    val fontFamily = FontFamily(
-//        Font(Res.font.firacode_regular, FontWeight.Normal, FontStyle.Normal),
-//        Font(Res.font.firacode_medium, FontWeight.SemiBold, FontStyle.Normal),
-//        Font(Res.font.firacode_light, FontWeight.Light, FontStyle.Normal),
-//        Font(Res.font.firacode_bold, FontWeight.Bold, FontStyle.Normal),
-//        Font(Res.font.firacode_retina, FontWeight.Thin, FontStyle.Normal),
-//    )
+    val fontFamily = FontFamily(
+        Font(Res.font.firacode_regular, FontWeight.Normal, FontStyle.Normal),
+        Font(Res.font.firacode_medium, FontWeight.SemiBold, FontStyle.Normal),
+        Font(Res.font.firacode_light, FontWeight.Light, FontStyle.Normal),
+        Font(Res.font.firacode_bold, FontWeight.Bold, FontStyle.Normal),
+        Font(Res.font.firacode_retina, FontWeight.Thin, FontStyle.Normal),
+    )
 
     val defaultTypography = Typography()
     DynamicMaterialTheme(
@@ -63,27 +64,27 @@ fun AppTheme(content: @Composable () -> Unit) {
         seedColor = color.value,
         style = appStyle.value,
         isExtendedFidelity = false,
-//        typography = Typography(
-//            displayLarge = defaultTypography.displayLarge.copy(fontFamily = fontFamily),
-//            displayMedium = defaultTypography.displayMedium.copy(fontFamily = fontFamily),
-//            displaySmall = defaultTypography.displaySmall.copy(fontFamily = fontFamily),
-//
-//            headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = fontFamily),
-//            headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = fontFamily),
-//            headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = fontFamily),
-//
-//            titleLarge = defaultTypography.titleLarge.copy(fontFamily = fontFamily),
-//            titleMedium = defaultTypography.titleMedium.copy(fontFamily = fontFamily),
-//            titleSmall = defaultTypography.titleSmall.copy(fontFamily = fontFamily),
-//
-//            bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = fontFamily),
-//            bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = fontFamily),
-//            bodySmall = defaultTypography.bodySmall.copy(fontFamily = fontFamily),
-//
-//            labelLarge = defaultTypography.labelLarge.copy(fontFamily = fontFamily),
-//            labelMedium = defaultTypography.labelMedium.copy(fontFamily = fontFamily),
-//            labelSmall = defaultTypography.labelSmall.copy(fontFamily = fontFamily)
-//        ),
+        typography = Typography(
+            displayLarge = defaultTypography.displayLarge.copy(fontFamily = fontFamily),
+            displayMedium = defaultTypography.displayMedium.copy(fontFamily = fontFamily),
+            displaySmall = defaultTypography.displaySmall.copy(fontFamily = fontFamily),
+
+            headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = fontFamily),
+            headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = fontFamily),
+            headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = fontFamily),
+
+            titleLarge = defaultTypography.titleLarge.copy(fontFamily = fontFamily),
+            titleMedium = defaultTypography.titleMedium.copy(fontFamily = fontFamily),
+            titleSmall = defaultTypography.titleSmall.copy(fontFamily = fontFamily),
+
+            bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = fontFamily),
+            bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = fontFamily),
+            bodySmall = defaultTypography.bodySmall.copy(fontFamily = fontFamily),
+
+            labelLarge = defaultTypography.labelLarge.copy(fontFamily = fontFamily),
+            labelMedium = defaultTypography.labelMedium.copy(fontFamily = fontFamily),
+            labelSmall = defaultTypography.labelSmall.copy(fontFamily = fontFamily)
+        ),
         content = content
     )
 }

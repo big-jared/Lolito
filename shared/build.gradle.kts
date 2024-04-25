@@ -1,9 +1,10 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlinNativeCocoapods)
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose)
+//    alias(libs.plugins.zipline)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -24,7 +25,6 @@ kotlin {
             export(libs.kmpNotifier)
         }
     }
-
 
     //Generating BuildConfig for multiplatform
     val buildConfigGenerator by tasks.registering(Sync::class) {
@@ -52,10 +52,7 @@ kotlin {
     }
 
     sourceSets {
-        commonMain {
-            kotlin.srcDir(
-                // convert the task to a file-provider
-                buildConfigGenerator.map { it.destinationDir })
+        val commonMain by getting {
             dependencies {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
@@ -91,7 +88,7 @@ kotlin {
 //                implementation(libs.contstraint.layout)
             }
         }
-        androidMain {
+        val androidMain by getting {
             dependencies {
                 api(libs.androidx.activity.compose)
                 api(libs.androidx.appcompat)
@@ -133,8 +130,8 @@ android {
     kotlin {
         jvmToolchain(17)
     }
-
 }
+
 /**
  * Property File name example secrets.properties
  * two local file can be created

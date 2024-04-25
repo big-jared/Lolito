@@ -114,7 +114,7 @@ data class TaskScreenModel(
     val names: MutableState<List<MutableState<String>>> = mutableStateOf(listOf(mutableStateOf(""))),
     val taskType: MutableState<TaskType?> = mutableStateOf(null),
     val dueDate: MutableState<Instant?> = mutableStateOf(null),
-    val assignedTo: MutableState<List<User>> = mutableStateOf(mutableListOf(currentUser!!)),
+    val assignedTo: MutableState<Set<User>> = mutableStateOf(mutableSetOf(currentUser!!)),
     val notes: MutableState<String> = mutableStateOf(""),
     val dialogText: MutableState<String> = mutableStateOf(""),
     val duration: MutableState<Duration?> = mutableStateOf(null),
