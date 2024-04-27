@@ -8,7 +8,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.PaletteStyle
-import micro.shared
 import micro.shared.generated.resources.Res
 import micro.shared.generated.resources.firacode_bold
 import micro.shared.generated.resources.firacode_light

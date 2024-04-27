@@ -117,8 +117,12 @@ android {
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
     namespace = "com.jaredg.micro"
 
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
+    sourceSets {
+        named("main") {
+            manifest.srcFile("src/androidMain/AndroidManifest.xml")
+            res.srcDirs("src/commonMain/composeResources")
+        }
+    }
 
     defaultConfig {
         minSdk = (findProperty("android.minSdk") as String).toInt()
