@@ -34,6 +34,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import blue
@@ -51,10 +53,16 @@ import lightRed
 import lightYellow
 import micro.shared.generated.resources.Res
 import micro.shared.generated.resources.delete
+import micro.shared.generated.resources.firacode_bold
+import micro.shared.generated.resources.firacode_light
+import micro.shared.generated.resources.firacode_medium
+import micro.shared.generated.resources.firacode_regular
+import micro.shared.generated.resources.firacode_retina
 import models.TaskType
 import navy
 import orange
 import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 import purple
 import red
@@ -87,7 +95,7 @@ fun TaskTypeDialogContent(type: TaskType?, onSave: (TaskType) -> Unit) {
                 modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
                 text = if (creating) "Create new project" else "Edit project",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
             type?.let {
                 AppIconButton(

@@ -48,42 +48,44 @@ var defaultTone = mutableStateOf(Tone(AlertTone.Casual.name))
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun AppTheme(content: @Composable () -> Unit) {
-    val fontFamily = FontFamily(
-        Font(Res.font.firacode_regular, FontWeight.Normal, FontStyle.Normal),
-        Font(Res.font.firacode_medium, FontWeight.SemiBold, FontStyle.Normal),
-        Font(Res.font.firacode_light, FontWeight.Light, FontStyle.Normal),
-        Font(Res.font.firacode_bold, FontWeight.Bold, FontStyle.Normal),
-        Font(Res.font.firacode_retina, FontWeight.Thin, FontStyle.Normal),
-    )
+fun FiraFontFamily() = FontFamily(
+    Font(Res.font.firacode_light, FontWeight.Light),
+    Font(Res.font.firacode_medium, FontWeight.Normal),
+    Font(Res.font.firacode_medium, FontWeight.Medium),
+    Font(Res.font.firacode_bold, FontWeight.Bold),
+    Font(Res.font.firacode_retina, FontWeight.Thin),
+)
 
-    val defaultTypography = Typography()
+@Composable
+fun FiraTypography() = Typography().run {
+    val fontFamily = FiraFontFamily()
+    copy(
+        displayLarge = displayLarge.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        displayMedium = displayMedium.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        displaySmall = displaySmall.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        headlineLarge = headlineLarge.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        headlineMedium = headlineMedium.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        headlineSmall = headlineSmall.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        titleLarge = titleLarge.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        titleMedium = titleMedium.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        titleSmall = titleSmall.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        bodyLarge = bodyLarge.copy(fontFamily =  fontFamily, fontWeight = FontWeight.Medium),
+        bodyMedium = bodyMedium.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        bodySmall = bodySmall.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        labelLarge = labelLarge.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        labelMedium = labelMedium.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium),
+        labelSmall = labelSmall.copy(fontFamily = fontFamily, fontWeight = FontWeight.Medium)
+    )
+}
+
+@Composable
+fun AppTheme(content: @Composable () -> Unit) {
     DynamicMaterialTheme(
         animate = true,
         seedColor = color.value,
         style = appStyle.value,
         isExtendedFidelity = false,
-        typography = Typography(
-            displayLarge = defaultTypography.displayLarge.copy(fontFamily = fontFamily),
-            displayMedium = defaultTypography.displayMedium.copy(fontFamily = fontFamily),
-            displaySmall = defaultTypography.displaySmall.copy(fontFamily = fontFamily),
-
-            headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = fontFamily),
-            headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = fontFamily),
-            headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = fontFamily),
-
-            titleLarge = defaultTypography.titleLarge.copy(fontFamily = fontFamily),
-            titleMedium = defaultTypography.titleMedium.copy(fontFamily = fontFamily),
-            titleSmall = defaultTypography.titleSmall.copy(fontFamily = fontFamily),
-
-            bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = fontFamily),
-            bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = fontFamily),
-            bodySmall = defaultTypography.bodySmall.copy(fontFamily = fontFamily),
-
-            labelLarge = defaultTypography.labelLarge.copy(fontFamily = fontFamily),
-            labelMedium = defaultTypography.labelMedium.copy(fontFamily = fontFamily),
-            labelSmall = defaultTypography.labelSmall.copy(fontFamily = fontFamily)
-        ),
+        typography = FiraTypography(),
         content = content
     )
 }

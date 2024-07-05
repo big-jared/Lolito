@@ -347,7 +347,6 @@ fun Calender(
                             HorizontalPager(
                                 modifier = modifier.fillMaxWidth().padding(horizontal = 4.dp),
                                 state = monthPagerState,
-                                beyondBoundsPageCount = 0,
                                 verticalAlignment = Alignment.Top
                             ) { page ->
                                 startOfMonth = now.minus(startingMonthPage - page, DateTimeUnit.MONTH).startOfMonth()
