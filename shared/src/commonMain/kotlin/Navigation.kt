@@ -23,10 +23,8 @@ interface BottomSheetScreen : Screen {
     override fun Content() {
         val shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
         Surface(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.surfaceDim, shape = shape)
-                .clip(shape),
-            color = MaterialTheme.colorScheme.surfaceContainerLowest
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            shape = shape
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth()

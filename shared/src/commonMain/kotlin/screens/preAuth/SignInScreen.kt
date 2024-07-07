@@ -40,93 +40,88 @@ import kotlinx.coroutines.launch
 import screens.SplashScreen
 import utils.Lottie
 
-class SignInScreen: Screen {
+class SignInScreen : Screen {
 
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-
         var username by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         var dialogText by remember { mutableStateOf("") }
 
         val coScope = rememberCoroutineScope()
 
-        Surface(color = MaterialTheme.colorScheme.background) {
-            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-                Spacer(modifier = Modifier.weight(1f))
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(bottom = 24.dp)
-                ) {
-                    Text(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                            .padding(vertical = 8.dp),
-                        text = "Email"
-                    )
-                    OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally).imePadding(),
-                        value = username,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        maxLines = 1,
-                        onValueChange = {
-                            username = it.trim()
-                        })
-                    Text(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                            .padding(vertical = 8.dp),
-                        text = "Password"
-                    )
-                    OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally).imePadding(),
-                        value = password,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        visualTransformation = PasswordVisualTransformation(),
-                        onValueChange = {
-                            password = it.trim()
-                        })
-                    Button(modifier = Modifier.align(Alignment.CenterHorizontally)
-                        .padding(top = 24.dp),
-                        onClick = {
-                            coScope.launch {
-                                try {
-                                    Firebase.auth.signInWithEmailAndPassword(
-                                        username,
-                                        password
-                                    ).user?.let {
-                                        navigator.replaceAll(SplashScreen())
-                                    } ?: run {
-                                        dialogText = "Unexpected error occurred"
-                                    }
-                                } catch (e: Exception) {
-                                    dialogText = e.message ?: ""
-                                }
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            Text(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+                    .padding(vertical = 8.dp),
+                text = "TEst Email"
+            )
+            OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally)
+                .imePadding(),
+                value = username,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                maxLines = 1,
+                onValueChange = {
+                    username = it.trim()
+                })
+            Text(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+                    .padding(vertical = 8.dp),
+                text = "Password"
+            )
+            OutlinedTextField(modifier = Modifier.align(Alignment.CenterHorizontally)
+                .imePadding(),
+                value = password,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = PasswordVisualTransformation(),
+                onValueChange = {
+                    password = it.trim()
+                })
+            Button(modifier = Modifier.align(Alignment.CenterHorizontally)
+                .padding(top = 24.dp),
+                onClick = {
+                    coScope.launch {
+                        try {
+                            Firebase.auth.signInWithEmailAndPassword(
+                                username,
+                                password
+                            ).user?.let {
+                                navigator.replaceAll(SplashScreen())
+                            } ?: run {
+                                dialogText = "Unexpected error occurred"
                             }
-                        }) {
-                        Text("Sign In")
-                    }
-                    TextButton(modifier = Modifier.align(Alignment.CenterHorizontally), onClick = {
-                        coScope.launch {
-                            navigator.push(SignUpScreen())
+                        } catch (e: Exception) {
+                            dialogText = e.message ?: ""
                         }
-                    }) {
-                        Text("Sign up")
                     }
-                }
+                }) {
+                Text("Sign In")
+            }
+            TextButton(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                onClick = {
+                    coScope.launch {
+                        navigator.push(SignUpScreen())
+                    }
+                }) {
+                Text("Sign up")
+            }
 
-                if (dialogText.isNotEmpty()) {
-                    AlertDialog(
-                        onDismissRequest = { dialogText = "" },
-                        text = {
-                            Text(dialogText)
-                        },
-                        confirmButton = {
-                            Button(modifier = Modifier.fillMaxWidth(),
-                                onClick = { dialogText = "" },
-                                content = {
-                                    Text("Ok")
-                                })
-                        },
-                    )
-                }
+            if (dialogText.isNotEmpty()) {
+                AlertDialog(
+                    onDismissRequest = { dialogText = "" },
+                    text = {
+                        Text(dialogText)
+                    },
+                    confirmButton = {
+                        Button(modifier = Modifier.fillMaxWidth(),
+                            onClick = { dialogText = "" },
+                            content = {
+                                Text("Ok")
+                            })
+                    },
+                )
             }
         }
     }

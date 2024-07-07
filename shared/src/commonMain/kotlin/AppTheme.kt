@@ -1,10 +1,10 @@
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.PaletteStyle
@@ -12,7 +12,6 @@ import micro.shared.generated.resources.Res
 import micro.shared.generated.resources.firacode_bold
 import micro.shared.generated.resources.firacode_light
 import micro.shared.generated.resources.firacode_medium
-import micro.shared.generated.resources.firacode_regular
 import micro.shared.generated.resources.firacode_retina
 import models.AlertTone
 import models.Tone
@@ -45,6 +44,7 @@ val darkGrey = Color(0xff646464)
 var color = mutableStateOf(navy)
 var appStyle = mutableStateOf(PaletteStyle.FruitSalad)
 var defaultTone = mutableStateOf(Tone(AlertTone.Casual.name))
+var darkTheme = mutableStateOf<Boolean?>(null)
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
@@ -84,6 +84,7 @@ fun AppTheme(content: @Composable () -> Unit) {
         animate = true,
         seedColor = color.value,
         style = appStyle.value,
+        useDarkTheme = darkTheme.value ?: isSystemInDarkTheme(),
         isExtendedFidelity = false,
         typography = FiraTypography(),
         content = content

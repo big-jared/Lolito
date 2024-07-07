@@ -15,7 +15,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import screens.create.GroupScreen
-import screens.preAuth.Landing
+import screens.preAuth.PreAuthScreen
 import services.GroupService
 import services.UserService.getCurrentUser
 
@@ -29,7 +29,7 @@ class SplashScreen : Screen {
         LaunchedEffect(null) {
             navigator.push(
                 when {
-                    getCurrentUser() == null -> Landing()
+                    getCurrentUser() == null -> PreAuthScreen()
                     GroupService.getActiveGroup() == null -> GroupScreen()
                     else -> AuthenticatedScreen
                 }

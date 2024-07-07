@@ -95,6 +95,9 @@ object HomeTab : Tab {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     TasksHeader()
+//                    Upcoming()
+//                    Activity()
+
 
                     val filteredTasks = taskMap.keys.sortedByDescending { it.name }.mapNotNull { type ->
                         val tasks = taskMap[type]?.filterNot { !showCompleted.value && it.complete }?.takeIfNotEmpty() ?: return@mapNotNull null

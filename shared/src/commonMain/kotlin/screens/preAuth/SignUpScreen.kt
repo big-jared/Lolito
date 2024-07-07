@@ -50,7 +50,6 @@ class SignUpScreen : Screen {
         var password by remember { mutableStateOf("") }
         val coScope = rememberCoroutineScope()
 
-
         Surface(color = MaterialTheme.colorScheme.background) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 Spacer(modifier = Modifier.weight(1f))

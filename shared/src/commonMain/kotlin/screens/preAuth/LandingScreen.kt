@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -124,7 +126,7 @@ class Landing : Screen {
         }
 
         Box(
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp)
+            modifier = Modifier.align(Alignment.BottomCenter).safeContentPadding().padding(bottom = 12.dp)
                 .size(84.dp)
                 .background(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer)
         ) {
