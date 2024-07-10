@@ -2,6 +2,7 @@ package screens.preAuth
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Palette
@@ -29,33 +31,59 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import appStyle
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import color
+import darkTheme
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.launch
+import models.User
+import screens.SplashScreen
 import screens.settings.StyleBottomSheet
+import screens.uid
+import services.UserService
+import services.UserService.getUser
 import utils.AppIconButton
 
 class SignInScreenModel() {
     var username = mutableStateOf("")
     var password = mutableStateOf("")
     var confirmPassword = mutableStateOf("")
+    var displayName = mutableStateOf("")
     var error = mutableStateOf<String?>(null)
 
-    suspend fun signIn() {
+    suspend fun signIn(navigator: Navigator) {
         try {
             Firebase.auth.signInWithEmailAndPassword(
                 username.value, password.value
-            ).user?.let {} ?: run {
+            ).user?.let {
+                val currentUser = getUser(it.uid) ?: run {
+                    error.value = "Unexpected error occurred"
+                    return@let
+                }
+                UserService.setUser(
+                    currentUser.copy(
+                        seedColor = color.value.toArgb(),
+                        style = appStyle.value.name
+                    )
+                )
+                navigator.replaceAll(SplashScreen())
+            } ?: run {
                 error.value = "Unexpected error occurred"
             }
         } catch (e: Exception) {
@@ -63,12 +91,22 @@ class SignInScreenModel() {
         }
     }
 
-    suspend fun signUp() {
+    suspend fun signUp(navigator: Navigator) {
         try {
-            Firebase.auth.signInWithEmailAndPassword(
+            Firebase.auth.createUserWithEmailAndPassword(
                 username.value, password.value
-            ).user?.let {} ?: run {
-                error.value = "Unexpected error occurred"
+            ).user?.let {
+                UserService.setUser(
+                    User(
+                        it.uid,
+                        seedColor = color.value.toArgb(),
+                        displayName = displayName.value,
+                        style = appStyle.value.name
+                    )
+                )
+                navigator.replaceAll(SplashScreen())
+            } ?: run {
+                error.value = "Unexpected error occured"
             }
         } catch (e: Exception) {
             error.value = e.message ?: ""
@@ -159,15 +197,18 @@ class PreAuthScreen : Screen {
             animateIn = true
         }
 
+        val focusManager = LocalFocusManager.current
+
         AnimatedVisibility(animateIn, enter = slideInVertically(initialOffsetY = { it / 2 })) {
             Surface(
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                color = if (darkTheme.value
+                        ?: isSystemInDarkTheme()
+                ) MaterialTheme.colorScheme.surfaceBright else MaterialTheme.colorScheme.surfaceDim,
             ) {
                 Column(modifier = Modifier.padding(top = 16.dp).fillMaxWidth()) {
 
-                    FilledTonalButton(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                    FilledTonalButton(modifier = Modifier.align(Alignment.CenterHorizontally),
                         onClick = {
                             coScope.launch {
                                 signInScreenModel.error.value = "Not yet implemented"
@@ -187,7 +228,15 @@ class PreAuthScreen : Screen {
                     OutlinedTextField(modifier = Modifier.padding(top = 16.dp)
                         .align(Alignment.CenterHorizontally),
                         value = signInScreenModel.username.value,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = {
+                                focusManager.moveFocus(FocusDirection.Down)
+                            }
+                        ),
                         label = {
                             Text("Email")
                         },
@@ -198,7 +247,21 @@ class PreAuthScreen : Screen {
                     OutlinedTextField(modifier = Modifier.padding(top = 16.dp)
                         .align(Alignment.CenterHorizontally),
                         value = signInScreenModel.password.value,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = if (isSignIn) ImeAction.Done else ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = {
+                                focusManager.moveFocus(FocusDirection.Down)
+                            },
+                            onDone = {
+                                coScope.launch {
+                                    focusManager.clearFocus()
+                                    signInScreenModel.signIn(navigator)
+                                }
+                            }
+                        ),
                         label = {
                             Text("Password")
                         },
@@ -211,35 +274,54 @@ class PreAuthScreen : Screen {
                             OutlinedTextField(modifier = Modifier.padding(top = 16.dp)
                                 .align(Alignment.CenterHorizontally),
                                 value = signInScreenModel.confirmPassword.value,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Password,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = {
+                                        focusManager.moveFocus(FocusDirection.Down)
+                                    }
+                                ),
                                 label = {
                                     Text("Confirm Password")
                                 },
                                 visualTransformation = PasswordVisualTransformation(),
                                 onValueChange = {
-                                    signInScreenModel.password.value = it.trim()
+                                    signInScreenModel.confirmPassword.value = it.trim()
                                 })
 
                             OutlinedTextField(modifier = Modifier.padding(top = 16.dp)
                                 .align(Alignment.CenterHorizontally),
-                                value = signInScreenModel.confirmPassword.value,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                value = signInScreenModel.displayName.value,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        coScope.launch {
+                                            focusManager.clearFocus()
+                                            signInScreenModel.signUp(navigator)
+                                        }
+                                    }
+                                ),
                                 label = {
                                     Text("Display Name")
                                 },
-                                visualTransformation = PasswordVisualTransformation(),
                                 onValueChange = {
-                                    signInScreenModel.password.value = it.trim()
+                                    signInScreenModel.displayName.value = it.trim()
                                 })
                         }
                     }
                     Button(modifier = Modifier.align(Alignment.CenterHorizontally)
                         .padding(top = 24.dp), onClick = {
                         coScope.launch {
+                            focusManager.clearFocus()
                             if (isSignIn) {
-                                signInScreenModel.signIn()
+                                signInScreenModel.signIn(navigator)
                             } else {
-                                signInScreenModel.signUp()
+                                signInScreenModel.signUp(navigator)
                             }
                         }
                     }) {
